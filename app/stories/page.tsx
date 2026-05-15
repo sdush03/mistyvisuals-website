@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import type { Story } from '@/lib/types'
-import { fetchStories } from '@/lib/api'
+import { fetchStories, fetchHomeData } from '@/lib/api'
 import NavBar from '@/components/NavBar'
 import Link from 'next/link'
 import InquiryCTA from '@/components/InquiryCTA'
@@ -25,8 +25,12 @@ export const metadata: Metadata = {
 
 export default async function StoriesPage() {
   let stories: Story[] = []
+  let inquiryBg = undefined
+
   try {
     stories = await fetchStories()
+    const homeData = await fetchHomeData()
+    inquiryBg = homeData?.sections?.find((s: any) => s.key === 'inquiry')?.content?.bgImage
   } catch {
     stories = []
   }
@@ -120,27 +124,9 @@ export default async function StoriesPage() {
           </div>
         )}
 
-        <InquiryCTA headline="Begin Your Story" />
+        <InquiryCTA headline="LET'S BEGIN YOUR STORY" bgImage={inquiryBg} />
       </main>
 
-      {/* ── Footer ── */}
-      <footer style={{
-        padding: 'clamp(2rem,4vh,3rem) var(--page-x)',
-        borderTop: '1px solid var(--border)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '1rem',
-        background: 'var(--linen)',
-      }}>
-        <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.5rem', fontWeight: 300, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--ink-light)' }}>
-          © {new Date().getFullYear()} Misty Visuals
-        </span>
-        <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.5rem', fontWeight: 300, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--ink-light)' }}>
-          Photography &amp; Films
-        </span>
-      </footer>
 
       <style>{`
         @media (max-width: 900px) {

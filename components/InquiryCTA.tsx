@@ -8,7 +8,7 @@ interface Props {
 
 export default function InquiryCTA({
   headline = "Let's Connect",
-  subline = 'I look forward to hearing from you and helping you create memories that will last a lifetime.',
+  subline = 'We look forward to hearing from you and helping you create memories that will last a lifetime.',
   bgImage,
 }: Props) {
   return (
@@ -54,32 +54,29 @@ export default function InquiryCTA({
       }}>
         {/* Left: headline + subline */}
         <div>
-          <h2 style={{
-            fontFamily: 'var(--font-serif)',
-            fontSize: 'clamp(3rem, 7vw, 6rem)',
-            fontWeight: 300,
+          <h2 className="mv-heading" style={{
+            fontSize: '3.5rem',
             color: '#fff',
-            lineHeight: 0.95,
-            letterSpacing: '0.03em',
             marginBottom: '1.25rem',
           }}>
             {headline}
           </h2>
           <p style={{
             fontFamily: 'var(--font-sans)',
-            fontSize: '0.625rem',
-            fontWeight: 300,
+            fontSize: '0.75rem',
+            fontWeight: 400,
             letterSpacing: '0.22em',
             textTransform: 'uppercase',
-            color: 'rgba(255,255,255,0.5)',
-            maxWidth: '36ch',
+            color: '#fff',
+            maxWidth: '70ch',
             lineHeight: 1.9,
+            marginLeft: '0.25rem', // Slight optical adjustment to align with large headline
           }}>
             {subline}
           </p>
         </div>
 
-        {/* Right: GET IN TOUCH button — Morgan style */}
+        {/* Right: GET IN TOUCH button */}
         <Link href="/contact" className="cta-btn">
           Get In Touch
         </Link>
@@ -87,22 +84,24 @@ export default function InquiryCTA({
 
       <style>{`
         .cta-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
           font-family: var(--font-sans);
-          font-size: 0.5875rem;
-          font-weight: 300;
-          letter-spacing: 0.28em;
+          font-size: 0.6875rem;
+          fontWeight: 400;
+          letter-spacing: 0.22em;
           text-transform: uppercase;
-          color: rgba(255,255,255,0.75);
-          border: 1px solid rgba(255,255,255,0.35);
-          padding: 0.875rem 1.875rem;
+          color: #ffffff;
+          background: #222;
+          padding: 1.25rem 2rem;
           text-decoration: none;
           white-space: nowrap;
           align-self: flex-end;
-          transition: color 0.3s ease, border-color 0.3s ease;
+          transition: background 0.3s ease;
         }
         .cta-btn:hover {
-          color: #fff;
-          border-color: rgba(255,255,255,0.8);
+          background: #000;
         }
       `}</style>
     </section>

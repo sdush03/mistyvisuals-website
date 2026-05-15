@@ -7,6 +7,8 @@ import PhilosophySection from '@/components/PhilosophySection'
 import FilmsSection from '@/components/FilmsSection'
 import TestimonialsSection from '@/components/TestimonialsSection'
 import InquiryCTA from '@/components/InquiryCTA'
+import FullBleedVideo from '@/components/FullBleedVideo'
+import InstagramFeed from '@/components/InstagramFeed'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,50 +38,36 @@ export default async function HomePage() {
     <>
       <NavBar />
       <main>
-        <HeroSection hero={hero} />
-        <FeaturedStories stories={stories} />
-        <PhilosophySection
-          photo1={philContent.photo1 || null}
-          photo2={philContent.photo2 || null}
-          heading={philContent.heading || undefined}
-          body={philContent.body || undefined}
-        />
-        {films.length > 0 && <FilmsSection films={films} />}
-        {testimonials.length > 0 && <TestimonialsSection testimonials={testimonials} />}
-        <InquiryCTA />
+        {sections?.filter((s: any) => s.is_visible).map((s: any) => {
+          switch (s.key) {
+            case 'hero':
+              return hero ? <HeroSection key="hero" hero={hero} /> : null
+            case 'stories':
+              return stories.length > 0 ? <FeaturedStories key="stories" stories={stories} /> : null
+            case 'philosophy':
+              return (
+                <PhilosophySection
+                  key="philosophy"
+                  photo1={philContent.photo1 || null}
+                  photo2={philContent.photo2 || null}
+                  heading={philContent.heading || undefined}
+                  body={philContent.body || undefined}
+                />
+              )
+            case 'full_bleed_video':
+              return <FullBleedVideo key="full_bleed_video" videoUrl={s.content?.videoUrl} />
+            case 'films':
+              return films.length > 0 ? <FilmsSection key="films" films={films} /> : null
+            case 'testimonials':
+              return testimonials.length > 0 ? <TestimonialsSection key="testimonials" testimonials={testimonials} /> : null
+            case 'inquiry':
+              return <InquiryCTA key="inquiry" bgImage={s.content?.bgImage} />
+            default:
+              return null
+          }
+        })}
       </main>
 
-      <footer style={{
-        padding: 'clamp(2rem,4vh,3rem) var(--page-x)',
-        borderTop: '1px solid var(--border)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '1rem',
-        background: 'var(--linen)',
-      }}>
-        <span style={{
-          fontFamily: 'var(--font-sans)',
-          fontSize: '0.5rem',
-          fontWeight: 300,
-          letterSpacing: '0.28em',
-          textTransform: 'uppercase',
-          color: 'var(--ink-light)',
-        }}>
-          © {new Date().getFullYear()} Misty Visuals
-        </span>
-        <span style={{
-          fontFamily: 'var(--font-sans)',
-          fontSize: '0.5rem',
-          fontWeight: 300,
-          letterSpacing: '0.28em',
-          textTransform: 'uppercase',
-          color: 'var(--ink-light)',
-        }}>
-          Photography &amp; Films
-        </span>
-      </footer>
     </>
   )
 }

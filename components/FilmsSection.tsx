@@ -16,13 +16,9 @@ export default function FilmsSection({ films, heading = 'Films' }: Props) {
       borderTop: '1px solid var(--border)',
     }}>
       <div style={{ textAlign: 'center', marginBottom: 'clamp(2.5rem,5vh,4rem)' }}>
-        <h2 style={{
-          fontFamily: 'var(--font-serif)',
-          fontSize: 'clamp(1.5rem, 3.5vw, 2.5rem)',
-          fontWeight: 400,
-          letterSpacing: '0.18em',
-          textTransform: 'uppercase',
+        <h2 className="mv-heading" style={{
           color: 'var(--ink)',
+          marginBottom: '0.875rem',
         }}>
           {heading}
         </h2>

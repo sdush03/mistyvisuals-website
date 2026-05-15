@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
   title: { default: 'Misty Visuals — Wedding Photography & Films', template: '%s | Misty Visuals' },
@@ -26,7 +27,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Footer />
+      </body>
     </html>
   )
 }

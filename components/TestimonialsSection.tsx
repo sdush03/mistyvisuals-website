@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import type { Testimonial } from '@/lib/types'
 
 interface Props {
@@ -8,103 +8,102 @@ interface Props {
   heading?: string
 }
 
-export default function TestimonialsSection({ testimonials, heading }: Props) {
-  const [idx, setIdx] = useState(0)
-  const [visible, setVisible] = useState(true)
-
-  useEffect(() => {
-    if (testimonials.length <= 1) return
-    const timer = setInterval(() => {
-      setVisible(false)
-      setTimeout(() => {
-        setIdx(i => (i + 1) % testimonials.length)
-        setVisible(true)
-      }, 500)
-    }, 8000)
-    return () => clearInterval(timer)
-  }, [testimonials.length])
-
+export default function TestimonialsSection({ testimonials, heading = 'TESTIMONIALS' }: Props) {
   if (!testimonials.length) return null
-  const t = testimonials[idx]
+
+  // Show only the first 3 on the homepage
+  const displayTestimonials = testimonials.slice(0, 3)
 
   return (
     <section style={{
-      background: 'var(--linen-dark)',
-      padding: 'clamp(4rem,8vh,7rem) var(--page-x)',
-      borderTop: '1px solid var(--border)',
+      background: 'var(--linen)', // White outer background
+      padding: 'clamp(3rem, 6vh, 5rem) var(--page-x)',
     }}>
-      <div style={{ maxWidth: '720px', margin: '0 auto', textAlign: 'center' }}>
-
-        {heading && (
-          <p className="t-caption" style={{ marginBottom: '3rem' }}>{heading}</p>
-        )}
-
-        <div style={{
-          opacity: visible ? 1 : 0,
-          transform: visible ? 'none' : 'translateY(6px)',
-          transition: 'opacity 0.5s ease, transform 0.5s ease',
+      <div style={{
+        background: '#f7f7f3', // Custom beige background
+        maxWidth: '1400px',
+        margin: '0 auto',
+        padding: 'clamp(4rem, 8vh, 6rem) clamp(2rem, 5vw, 6rem)',
+      }}>
+        
+        {/* Header Row: Title on Left, CTA on Right */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          marginBottom: 'clamp(3rem, 6vh, 5rem)' 
         }}>
-          {/* Large open-quote */}
-          <div style={{
-            fontFamily: 'var(--font-serif)',
-            fontSize: '5rem',
-            lineHeight: 0.5,
-            color: 'var(--border)',
-            marginBottom: '1.5rem',
-            userSelect: 'none',
-          }}>
-            &ldquo;
-          </div>
-
-          <blockquote style={{
-            fontFamily: 'var(--font-serif)',
-            fontSize: 'clamp(1.25rem, 2.5vw, 1.75rem)',
-            fontWeight: 300,
-            fontStyle: 'italic',
-            lineHeight: 1.6,
-            color: 'var(--ink)',
-            margin: '0 0 2rem',
-          }}>
-            {t.quote}
-          </blockquote>
-
-          <cite style={{
+          <p style={{ 
             fontFamily: 'var(--font-sans)',
-            fontSize: '0.5875rem',
-            fontStyle: 'normal',
+            fontSize: '1.125rem',
             letterSpacing: '0.2em',
             textTransform: 'uppercase',
-            color: 'var(--ink-light)',
+            color: 'var(--ink)',
+            fontWeight: 350,
+            fontVariationSettings: "'wght' 350"
           }}>
-            — {t.client_name}
-            {(t.location || t.year) && (
-              <span style={{ color: 'var(--border)', marginLeft: '0.5rem' }}>
-                // {[t.location, t.year].filter(Boolean).join(', ')}
-              </span>
-            )}
-          </cite>
+            {heading}
+          </p>
+          
+          <Link href="/testimonials" className="featured-cta" style={{ 
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontFamily: 'var(--font-sans)',
+            fontSize: '0.6875rem',
+            fontWeight: 400,
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            color: '#ffffff',
+            background: '#222',
+            padding: '1.25rem 2rem',
+            textDecoration: 'none',
+            transition: 'background 0.3s ease'
+          }}>
+            SEE MORE <span style={{ fontSize: '0.875rem', lineHeight: 1 }}>&rarr;</span>
+          </Link>
         </div>
 
-        {/* Dot nav */}
-        {testimonials.length > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '3rem' }}>
-            {testimonials.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => { setVisible(false); setTimeout(() => { setIdx(i); setVisible(true) }, 300) }}
-                style={{
-                  width: i === idx ? '1.5rem' : '0.3rem',
-                  height: '0.3rem',
-                  borderRadius: '3px',
-                  background: i === idx ? 'var(--ink)' : 'var(--border)',
-                  border: 'none', cursor: 'pointer', padding: 0,
-                  transition: 'all 0.3s ease',
-                }}
-                aria-label={`Testimonial ${i + 1}`}
-              />
-            ))}
-          </div>
-        )}
+        {/* 3-Column Grid */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: 'clamp(3rem, 6vw, 6rem)',
+        }}>
+          {displayTestimonials.map((t) => (
+            <div key={t.id} style={{ display: 'flex', flexDirection: 'column' }}>
+              {/* Quote - Fixed height with truncation */}
+              <blockquote className="mv-body" style={{
+                fontFamily: 'var(--font-lora)',
+                fontSize: '16px',
+                letterSpacing: '0em',
+                lineHeight: '1.8em',
+                color: '#656565',
+                margin: '0 0 1.5rem',
+                overflow: 'hidden',
+                display: '-webkit-box',
+                WebkitLineClamp: 8,
+                WebkitBoxOrient: 'vertical',
+                textOverflow: 'ellipsis',
+              }}>
+                {t.quote.length > 320 ? `"${t.quote.substring(0, 320).trim()}..."` : `"${t.quote}"`}
+              </blockquote>
+
+              {/* Client Name */}
+              <cite style={{
+                fontFamily: 'var(--font-sans)',
+                fontSize: '0.9375rem', // Slightly larger names
+                fontWeight: 300,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                color: 'var(--ink)',
+              }}>
+                {t.client_name}
+              </cite>
+            </div>
+          ))}
+        </div>
+
       </div>
     </section>
   )
