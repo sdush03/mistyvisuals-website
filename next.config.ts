@@ -1,17 +1,20 @@
 import type { NextConfig } from 'next'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+// Public URL for client-side fetches (browser)
+// Internal URL for server-side rewrites (avoids DNS/SSL overhead)
+const INTERNAL_API = process.env.INTERNAL_API_URL || 'http://127.0.0.1:3001'
 
 const nextConfig: NextConfig = {
   async rewrites() {
     return [
-      { source: '/api/:path*',   destination: `${API_URL}/api/:path*` },
-      { source: '/media/:path*', destination: `${API_URL}/media/:path*` },
+      { source: '/api/:path*',   destination: `${INTERNAL_API}/api/:path*` },
+      { source: '/media/:path*', destination: `${INTERNAL_API}/media/:path*` },
     ]
   },
   images: {
     remotePatterns: [
       { protocol: 'http',  hostname: 'localhost' },
+      { protocol: 'http',  hostname: '127.0.0.1' },
       { protocol: 'https', hostname: 'mistyvisuals.com' },
       { protocol: 'https', hostname: '*.mistyvisuals.com' },
     ],
