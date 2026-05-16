@@ -247,7 +247,7 @@ export default function AdminFilmsPage() {
           
           {openCategoryFilmId === film.id && (
             <div style={{
-              position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '4px',
+              position: 'absolute', bottom: '100%', left: 0, right: 0, marginBottom: '4px',
               background: '#fff', border: '1px solid #e0e0e0', borderRadius: '6px',
               boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 10, padding: '0.5rem 0',
               maxHeight: '250px', overflowY: 'auto'
