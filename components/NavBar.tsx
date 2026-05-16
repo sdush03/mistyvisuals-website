@@ -52,7 +52,6 @@ export default function NavBar() {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: '0 var(--page-x)',
     background: !isOverlayPage || menuOpen ? 'rgba(255,255,255,0.98)' : 'transparent',
     backdropFilter: !isOverlayPage || menuOpen ? 'blur(16px)' : 'none',
     borderBottom: 'none',

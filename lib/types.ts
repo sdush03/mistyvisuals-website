@@ -46,10 +46,14 @@ export interface Film {
   subtitle: string | null
   location: string | null
   year: number | null
+  category: string | null
   thumbnail_url: string | null
   thumbnail_blur: string | null
   youtube_url: string | null
   youtube_video_id: string | null
+  hls_url: string | null
+  transcode_status: string | null
+  transcode_error: string | null
   is_featured: boolean
   is_published: boolean
   display_order: number
