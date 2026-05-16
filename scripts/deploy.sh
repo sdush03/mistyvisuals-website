@@ -111,6 +111,12 @@ if pm2 describe "$PM2_NAME" > /dev/null 2>&1; then
 else
   pm2 start npm --name "$PM2_NAME" -- start -- -p "$PORT"
 fi
+
+echo "[deploy] Restarting OS Backend (misty-backend) to sync state..."
+if pm2 describe "misty-backend" > /dev/null 2>&1; then
+  pm2 restart "misty-backend"
+fi
+
 pm2 save --force > /dev/null 2>&1
 
 echo "[deploy] Done."
