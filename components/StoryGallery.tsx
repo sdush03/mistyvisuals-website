@@ -3,22 +3,37 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { StoryPhoto } from '@/lib/types'
 
-interface Props { photos: StoryPhoto[] }
+interface Props { photos: StoryPhoto[], tabs?: string[] | null }
 
-export default function StoryGallery({ photos }: Props) {
+export default function StoryGallery({ photos, tabs }: Props) {
+  const [activeTab, setActiveTab] = useState('All')
   const [lb, setLb] = useState<number | null>(null)
+  const [cols, setCols] = useState(3)
+
+  useEffect(() => {
+    const updateCols = () => {
+      if (window.innerWidth <= 640) setCols(1)
+      else if (window.innerWidth <= 1024) setCols(2)
+      else setCols(3)
+    }
+    updateCols()
+    window.addEventListener('resize', updateCols)
+    return () => window.removeEventListener('resize', updateCols)
+  }, [])
+
+  const filteredPhotos = activeTab === 'All' ? photos : photos.filter(p => p.tab_name === activeTab)
 
   // Keyboard navigation
   useEffect(() => {
     const fn = (e: KeyboardEvent) => {
       if (lb === null) return
       if (e.key === 'Escape')       setLb(null)
-      if (e.key === 'ArrowRight')   setLb(i => i !== null && i < photos.length - 1 ? i + 1 : i)
+      if (e.key === 'ArrowRight')   setLb(i => i !== null && i < filteredPhotos.length - 1 ? i + 1 : i)
       if (e.key === 'ArrowLeft')    setLb(i => i !== null && i > 0 ? i - 1 : i)
     }
     window.addEventListener('keydown', fn)
     return () => window.removeEventListener('keydown', fn)
-  }, [lb, photos.length])
+  }, [lb, filteredPhotos.length])
 
   // Prevent body scroll when lightbox open
   useEffect(() => {
@@ -27,50 +42,85 @@ export default function StoryGallery({ photos }: Props) {
   }, [lb])
 
   const prev = useCallback(() => setLb(i => i !== null && i > 0 ? i - 1 : i), [])
-  const next = useCallback(() => setLb(i => i !== null && i < photos.length - 1 ? i + 1 : i), [photos.length])
+  const next = useCallback(() => setLb(i => i !== null && i < filteredPhotos.length - 1 ? i + 1 : i), [filteredPhotos.length])
 
   if (!photos.length) return null
 
   return (
     <>
+      
+      {tabs && tabs.length > 0 && (
+        <div style={{
+          display: 'flex', justifyContent: 'flex-start', gap: '2rem', padding: '1.5rem var(--page-x) 0.5rem', flexWrap: 'wrap',
+          background: '#fff', borderTop: '1px solid #f0f0f0'
+        }}>
+          {['All', ...tabs].map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                fontFamily: 'var(--font-sans)', fontSize: '0.6875rem',
+                letterSpacing: '0.15em', textTransform: 'uppercase',
+                color: activeTab === tab ? '#000' : '#888',
+                paddingBottom: '0.25rem',
+                borderBottom: activeTab === tab ? '1px solid #000' : '1px solid transparent',
+                transition: 'all 0.2s'
+              }}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* ── Masonry columns ── */}
       <div
         className="story-masonry"
         style={{
-          columns: '3 300px',
-          columnGap: '6px',
-          padding: '0 var(--page-x)',
+          display: 'flex',
+          gap: '16px',
+          padding: '16px var(--page-x) 32px',
+          background: '#fff',
         }}
       >
-        {photos.map((photo, i) => (
-          <div
-            key={photo.id}
-            onClick={() => setLb(i)}
-            style={{
-              marginBottom: '6px',
-              breakInside: 'avoid',
-              cursor: 'zoom-in',
-              overflow: 'hidden',
-              lineHeight: 0,
-            }}
-            className="gallery-item"
-          >
-            <img
-              src={photo.file_url_thumb || photo.file_url}
-              srcSet={`${photo.file_url_thumb || photo.file_url} 600w, ${photo.file_url} 1920w`}
-              sizes="(max-width: 560px) 100vw, (max-width: 900px) 50vw, 33vw"
-              alt=""
-              loading={i < 4 ? 'eager' : 'lazy'}
-              decoding="async"
-              style={{
-                width: '100%',
-                height: 'auto',
-                display: 'block',
-                background: photo.blur_data_url ? `url(${photo.blur_data_url}) no-repeat center/cover` : 'var(--linen-dark)',
-              }}
-            />
-          </div>
-        ))}
+        {Array.from({ length: cols }).map((_, colIdx) => {
+          const colPhotos = filteredPhotos.filter((_, i) => i % cols === colIdx);
+          return (
+            <div key={colIdx} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {colPhotos.map((photo) => {
+                const globalIdx = filteredPhotos.indexOf(photo);
+                return (
+                  <div
+                    key={photo.id}
+                    onClick={() => setLb(globalIdx)}
+                    style={{
+                      cursor: 'pointer',
+                      overflow: 'hidden',
+                      lineHeight: 0,
+                    }}
+                    className="gallery-item"
+                  >
+                    <img
+                      src={photo.file_url_thumb || photo.file_url}
+                      srcSet={`${photo.file_url_thumb || photo.file_url} 600w, ${photo.file_url} 1920w`}
+                      sizes="(max-width: 560px) 100vw, (max-width: 900px) 50vw, 33vw"
+                      alt=""
+                      loading={globalIdx < 4 ? 'eager' : 'lazy'}
+                      decoding="async"
+                      style={{
+                        width: '100%',
+                        height: 'auto',
+                        display: 'block',
+                        background: photo.blur_data_url ? `url(${photo.blur_data_url}) no-repeat center/cover` : 'var(--linen-dark)',
+                      }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
 
       {/* ── Lightbox ── */}
@@ -87,7 +137,7 @@ export default function StoryGallery({ photos }: Props) {
         >
           {/* Image */}
           <img
-            src={photos[lb].file_url}
+            src={filteredPhotos[lb].file_url}
             alt=""
             onClick={e => e.stopPropagation()}
             style={{
@@ -112,7 +162,7 @@ export default function StoryGallery({ photos }: Props) {
           )}
 
           {/* Next */}
-          {lb < photos.length - 1 && (
+          {lb < filteredPhotos.length - 1 && (
             <button
               onClick={e => { e.stopPropagation(); next() }}
               aria-label="Next"
@@ -146,17 +196,17 @@ export default function StoryGallery({ photos }: Props) {
             fontFamily: 'var(--font-sans)', fontSize: '0.5rem', letterSpacing: '0.2em',
             color: 'rgba(255,255,255,0.3)',
           }}>
-            {lb + 1} &nbsp;/&nbsp; {photos.length}
+            {lb + 1} &nbsp;/&nbsp; {filteredPhotos.length}
           </div>
         </div>
       )}
 
       <style>{`
         @media (hover: hover) {
-          .gallery-item:hover img { opacity: 0.9; transition: opacity 0.3s ease; }
+          .gallery-item:hover img { opacity: 0.88; transition: opacity 0.35s ease; }
         }
-        @media (max-width: 560px) {
-          .story-masonry { columns: 2 140px !important; padding: 0 0.75rem !important; column-gap: 4px !important; }
+        @media (max-width: 640px) {
+          .story-masonry { columns: 2 160px !important; padding: 8px 12px 24px !important; column-gap: 8px !important; }
         }
       `}</style>
     </>

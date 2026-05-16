@@ -1,56 +1,44 @@
 import type { Metadata } from 'next'
-import type { Story } from '@/lib/types'
-import { fetchStories, fetchHomeData } from '@/lib/api'
+import type { Film } from '@/lib/types'
+import { fetchFilms, fetchHomeData } from '@/lib/api'
 import NavBar from '@/components/NavBar'
-import Link from 'next/link'
 import InquiryCTA from '@/components/InquiryCTA'
-import StoriesGrid from '@/components/StoriesGrid'
-
-const formatDate = (dateStr: string | null) => {
-  if (!dateStr) return null
-  try {
-    const d = new Date(dateStr)
-    if (isNaN(d.getTime())) return dateStr
-    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-  } catch {
-    return dateStr
-  }
-}
+import FilmsSection from '@/components/FilmsSection'
 
 export const revalidate = 60
 
 export const metadata: Metadata = {
-  title: 'Real Love Stories | Misty Visuals',
-  description: 'Wedding stories by Misty Visuals — luxury photography across India and worldwide.',
+  title: 'Cinematic Films | Misty Visuals',
+  description: 'Luxury wedding films by Misty Visuals.',
 }
 
-export default async function StoriesPage() {
-  let stories: Story[] = []
+export default async function FilmsPage() {
+  let films: Film[] = []
   let inquiryBg = undefined
-  let headerBg = undefined
+
+  let filmsBg = undefined
 
   try {
-    stories = await fetchStories()
+    films = await fetchFilms()
     const homeData = await fetchHomeData()
     const inquirySection = homeData?.sections?.find((s: any) => s.key === 'inquiry')
-    const storiesSection = homeData?.sections?.find((s: any) => s.key === 'stories')
-    inquiryBg = inquirySection?.content?.bgStories || inquirySection?.content?.bgImage
-    headerBg = storiesSection?.content?.bgImage
-  } catch {
-    stories = []
+    inquiryBg = inquirySection?.content?.bgFilms || inquirySection?.content?.bgImage
+    filmsBg = homeData?.sections?.find((s: any) => s.key === 'films')?.content?.bgImage
+  } catch (e) {
+    console.error(e)
   }
 
-  const finalHeaderBg = headerBg || (stories.length > 0 ? stories[0].cover_image_url : null)
+  // Cinematic placeholder for the half-page header
+  const headerBgUrl = filmsBg || 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80'
+  const isVideo = filmsBg ? /\.(mp4|webm|ogg|mov)$/i.test(filmsBg) : false
 
   return (
     <>
       <NavBar />
       <main style={{ background: 'var(--linen)' }}>
-
-
-
-        {/* ── Cinematic Header ── */}
-        <div style={{
+        
+        {/* Half-page Full Bleed Header */}
+        <section style={{
           position: 'relative',
           width: '100%',
           height: '75vh',
@@ -60,21 +48,27 @@ export default async function StoriesPage() {
           justifyContent: 'center',
           overflow: 'hidden',
         }}>
-          {finalHeaderBg && (
-            <img
-              src={finalHeaderBg}
-              alt="Portfolio"
+          {/* Background — image or video */}
+          {isVideo ? (
+            <video
+              src={headerBgUrl}
+              autoPlay muted loop playsInline
               style={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                zIndex: 0,
+                position: 'absolute', inset: 0,
+                width: '100%', height: '100%',
+                objectFit: 'cover', zIndex: 0,
               }}
             />
+          ) : (
+            <div style={{
+              position: 'absolute', inset: 0,
+              backgroundImage: `url(${headerBgUrl})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              zIndex: 0,
+            }} />
           )}
-
+          
           {/* Dark Overlay for text legibility */}
           <div style={{
             position: 'absolute', inset: 0,
@@ -82,13 +76,12 @@ export default async function StoriesPage() {
             zIndex: 1,
           }} />
 
+          {/* Header Content */}
           <div style={{
-            position: 'relative',
-            zIndex: 2,
-            textAlign: 'center',
+            position: 'relative', zIndex: 2,
+            textAlign: 'center', color: '#fff',
             padding: '0 var(--page-x)',
-            color: '#ffffff',
-            marginTop: 'var(--nav-h)', // Push down slightly to balance with navbar
+            marginTop: 'var(--nav-h)' // Push down slightly to balance with navbar
           }}>
             <p style={{
               fontFamily: 'var(--font-sans)',
@@ -99,7 +92,7 @@ export default async function StoriesPage() {
               opacity: 0.85,
               marginBottom: '1.25rem',
             }}>
-              Weddings by Misty Visuals
+              Films by Misty Visuals
             </p>
             <h1 style={{
               fontFamily: 'var(--font-sans)',
@@ -109,37 +102,36 @@ export default async function StoriesPage() {
               textTransform: 'uppercase',
               marginBottom: '1.5rem',
               lineHeight: 1.05,
-              color: '#fff',
             }}>
-              PORTFOLIO
+              Love in Motion
             </h1>
-            <p style={{ 
+            <p style={{
               fontFamily: 'var(--font-serif)',
               fontSize: 'clamp(0.9rem, 1.4vw, 1.1rem)',
               fontWeight: 300,
               fontStyle: 'italic',
               letterSpacing: '0.02em',
               opacity: 0.92,
-              maxWidth: '600px', 
+              maxWidth: '520px',
               margin: '0 auto',
               lineHeight: 1.7,
             }}>
-              Unscripted moments and intentional design. A closer look into the unique celebrations we’ve had the honor of documenting.
+              We go beyond documenting moments. We create films that breathe — immersive, emotional, and entirely yours.
             </p>
           </div>
-        </div>
+        </section>
 
-        {/* ── Filterable Grid ── */}
-        {stories.length > 0 ? (
-          <StoriesGrid stories={stories} />
+        {films.length > 0 ? (
+          <FilmsSection films={films} heading="" showFilters={true} hideViewAll={true} columns={2} />
         ) : (
           <div style={{
             textAlign: 'center',
             padding: '8rem var(--page-x)',
             color: 'var(--ink-light)',
           }}>
+            <h2 className="mv-heading" style={{ color: 'var(--ink)', marginBottom: '1rem' }}>Cinematic Films</h2>
             <p style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', fontWeight: 300, fontStyle: 'italic' }}>
-              Stories coming soon.
+              Films coming soon.
             </p>
           </div>
         )}

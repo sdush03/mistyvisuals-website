@@ -4,6 +4,7 @@ import type { Story } from '@/lib/types'
 interface Props {
   stories: Story[]
   heading?: string
+  body?: string
 }
 
 const formatDate = (dateStr: string | null) => {
@@ -17,25 +18,29 @@ const formatDate = (dateStr: string | null) => {
   }
 }
 
-export default function FeaturedStories({ stories, heading = 'FEATURED STORIES' }: Props) {
+export default function FeaturedStories({ 
+  stories, 
+  heading = 'FEATURED STORIES',
+  body = 'An editorial archive of modern romance. From intimate celebrations to luxury destination weddings, explore how we capture real love stories across India and worldwide.'
+}: Props) {
   if (!stories.length) return null
 
   return (
     <section style={{ background: 'var(--linen)', padding: 'clamp(4rem,8vh,7rem) var(--page-x)' }}>
 
       {/* ── Section heading ── */}
-      <div style={{ textAlign: 'center', marginBottom: 'clamp(3rem,6vh,5rem)' }}>
+      <div style={{ textAlign: 'center', marginBottom: 'clamp(3rem,6vh,5rem)', maxWidth: '600px', margin: '0 auto clamp(3rem,6vh,5rem)' }}>
         <h2 className="mv-heading" style={{
           color: 'var(--ink)',
           marginBottom: '0.875rem',
         }}>
           {heading}
         </h2>
-        <p className="mv-body" style={{
-          color: 'var(--ink-light)',
-        }}>
-          A curated collection of heartfelt celebrations and timeless moments.
-        </p>
+        {body && (
+          <p className="mv-body" style={{ color: 'var(--ink-light)' }}>
+            {body}
+          </p>
+        )}
       </div>
 
       {/* ── 3-column grid, NO overlays ── */}

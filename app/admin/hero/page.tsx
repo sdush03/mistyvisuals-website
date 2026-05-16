@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { compressImage } from '@/lib/compressImage'
 
 const API = process.env.NEXT_PUBLIC_API_URL || ''
 const apiFetch = (path: string, init?: RequestInit) =>
@@ -43,7 +44,17 @@ export default function AdminHeroPage() {
     setProgress(0)
     try {
       const form = new FormData()
-      if (file) form.append('file', file)
+      // Compress images client-side; stream videos raw
+      if (file && mediaType === 'image') {
+        try {
+          const compressed = await compressImage(file, { maxWidth: 2560, maxHeight: 1600, quality: 0.85 })
+          form.append('file', compressed)
+        } catch {
+          form.append('file', file)
+        }
+      } else if (file) {
+        form.append('file', file)
+      }
       form.append('headline', headline)
       form.append('subline', subline)
       form.append('mediaType', mediaType)

@@ -79,19 +79,35 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   /* ── Authenticated admin ── */
   const navLinks: { label: string, href: string, sub?: {label: string, href: string}[] }[] = [
-    { 
-      label: 'Homepage', 
+    {
+      label: 'Homepage',
       href: '/admin/homepage',
       sub: [
-        { label: 'Hero', href: '/admin/hero' },
-        { label: 'Philosophy', href: '/admin/philosophy' },
-        { label: 'Full Bleed Video', href: '/admin/fullbleed' },
-        { label: 'Testimonials', href: '/admin/testimonials' },
-        { label: "Let's Connect", href: '/admin/inquiry' }
+        { label: 'Hero',            href: '/admin/hero' },
+        { label: 'Philosophy',      href: '/admin/philosophy' },
+        { label: 'Full Bleed',      href: '/admin/fullbleed' },
+        { label: 'Testimonials',    href: '/admin/testimonials' },
+        { label: "Let's Connect",   href: '/admin/inquiry?tab=home' },
       ]
     },
-    { label: 'Stories', href: '/admin/stories' },
-    { label: 'Films', href: '/admin/films' },
+    {
+      label: 'Stories',
+      href: '/admin/stories',
+      sub: [
+        { label: 'All Stories',     href: '/admin/stories' },
+        { label: 'Header Image',    href: '/admin/stories#header' },
+        { label: "Let's Connect",   href: '/admin/inquiry?tab=stories' },
+      ]
+    },
+    {
+      label: 'Films',
+      href: '/admin/films',
+      sub: [
+        { label: 'All Films',       href: '/admin/films' },
+        { label: 'Header Image',    href: '/admin/films#header' },
+        { label: "Let's Connect",   href: '/admin/inquiry?tab=films' },
+      ]
+    },
   ]
 
   return (
@@ -128,12 +144,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Nav */}
         <nav style={{ flex: 1, padding: '0.75rem 0' }}>
           {navLinks.map((item) => {
-            const active = pathname === item.href || (item.href !== '/admin/homepage' && pathname.startsWith(item.href + '/'))
-            const isHomepageActive = pathname.startsWith('/admin/homepage') || pathname.startsWith('/admin/hero') || pathname.startsWith('/admin/philosophy') || pathname.startsWith('/admin/testimonials') || pathname.startsWith('/admin/fullbleed') || pathname.startsWith('/admin/inquiry')
-            
-            // If it's the homepage item, keep it active if we're in any submenu
-            const selfActive = item.href === '/admin/homepage' ? (pathname === '/admin/homepage') : active
-            const showSub = item.href === '/admin/homepage' ? isHomepageActive : false
+            const isThisPageActive = item.sub
+              ? item.sub.some(s => pathname === s.href.split('?')[0]) || pathname === item.href
+              : pathname === item.href || pathname.startsWith(item.href + '/')
+            const selfActive = pathname === item.href
+            const showSub = !!item.sub && isThisPageActive
 
             return (
               <div key={item.href}>

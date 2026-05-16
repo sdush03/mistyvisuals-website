@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import Link from 'next/link'
+import { compressImage } from '@/lib/compressImage'
 
 const API = process.env.NEXT_PUBLIC_API_URL || ''
 const apiFetch = (path: string, init?: RequestInit) =>
@@ -14,9 +15,73 @@ export default function AdminStoriesPage() {
   const [newTitle, setNewTitle] = useState('')
   const [draggingId, setDraggingId] = useState<number | null>(null)
 
+  // Header background state
+  const [headerBg, setHeaderBg] = useState<string | null>(null)
+  const [headerBgType, setHeaderBgType] = useState<'image' | 'video'>('image')
+  const [bgUploading, setBgUploading] = useState(false)
+  const [bgProgress, setBgProgress] = useState(0)
+  const [isDragActive, setIsDragActive] = useState(false)
+  const bgInputRef = useRef<HTMLInputElement>(null)
+
   useEffect(() => {
-    apiFetch('/api/website/admin/stories').then(r => r.json()).then(setStories).finally(() => setLoading(false))
+    Promise.all([
+      apiFetch('/api/website/admin/stories').then(r => r.json()),
+      apiFetch('/api/website/sections').then(r => r.json())
+    ]).then(([storiesData, sectionsData]) => {
+      setStories(storiesData)
+      const storiesSection = sectionsData.find((s: any) => s.key === 'stories')
+      if (storiesSection?.content?.bgImage) {
+        setHeaderBg(storiesSection.content.bgImage)
+        setHeaderBgType(storiesSection.content.bgType || 'image')
+      }
+    }).finally(() => setLoading(false))
   }, [])
+
+  const uploadHeaderBg = useCallback(async (file: File) => {
+    if (!file) return
+    setBgUploading(true)
+    setBgProgress(0)
+
+    const isVideo = file.type.startsWith('video/')
+
+    let toUpload: File = file
+    if (!isVideo) {
+      try {
+        toUpload = await compressImage(file, { maxWidth: 2560, maxHeight: 1600, quality: 0.82 })
+      } catch { /* fall back to original */ }
+    }
+
+    const form = new FormData()
+    form.append('file', toUpload)
+
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', `${API}/api/website/sections/stories/bg`)
+    xhr.withCredentials = true
+    xhr.upload.onprogress = e => e.lengthComputable && setBgProgress(Math.round((e.loaded / e.total) * 100))
+    xhr.onload = () => {
+      setBgUploading(false)
+      if (xhr.status === 200) {
+        const res = JSON.parse(xhr.responseText)
+        setHeaderBg(res.url)
+        setHeaderBgType(res.type || 'image')
+      } else {
+        alert('Upload failed')
+      }
+    }
+    xhr.onerror = () => {
+      setBgUploading(false)
+      alert('Upload failed')
+    }
+    xhr.send(form)
+  }, [])
+
+  const onDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragActive(true) }
+  const onDragLeave = (e: React.DragEvent) => { e.preventDefault(); setIsDragActive(false) }
+  const onDropBg = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragActive(false)
+    if (e.dataTransfer.files?.[0]) uploadHeaderBg(e.dataTransfer.files[0])
+  }
 
   const createStory = async () => {
     if (!newTitle.trim()) return
@@ -155,6 +220,50 @@ export default function AdminStoriesPage() {
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.75rem', fontWeight: 400 }}>Stories</h1>
           <p style={{ fontSize: '0.875rem', color: '#888' }}>Manage your portfolio. Drag to reorder your homepage featured editorials.</p>
         </div>
+      </div>
+
+      {/* ── Header Background Upload ── */}
+      <div id="header" style={{ marginBottom: '4rem' }}>
+        <h2 style={{ fontSize: '0.875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1a1512', fontWeight: 600, marginBottom: '1rem' }}>
+          Stories Page Header Image
+        </h2>
+        
+        <div
+          onClick={() => bgInputRef.current?.click()}
+          onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDropBg}
+          style={{
+            width: '100%', height: '160px',
+            background: headerBg ? 'none' : '#fff',
+            border: isDragActive ? '2px solid #1a1512' : '1px dashed #ccc',
+            borderRadius: '12px',
+            position: 'relative', overflow: 'hidden',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', transition: 'border 0.2s',
+          }}
+        >
+          {headerBg && headerBgType === 'video' ? (
+            <video src={headerBg} muted loop playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 }} />
+          ) : headerBg ? (
+            <img src={headerBg} alt="Header Bg" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 }} />
+          ) : null}
+          
+          <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', background: headerBg ? 'rgba(255,255,255,0.9)' : 'none', padding: headerBg ? '0.5rem 1rem' : '0', borderRadius: '8px' }}>
+            <span style={{ fontSize: '0.875rem', color: '#1a1512', fontWeight: 500 }}>
+              {headerBg ? 'Click or drag to replace' : 'Click or drag image here'}
+            </span>
+            <p style={{ fontSize: '0.75rem', color: '#888', marginTop: '0.25rem' }}>Full bleed landscape (e.g. 2560x1440)</p>
+          </div>
+
+          {bgUploading && (
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,21,18,0.8)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+              <div style={{ width: '60%', height: '4px', background: '#333', borderRadius: '2px', overflow: 'hidden' }}>
+                <div style={{ width: `${bgProgress}%`, height: '100%', background: '#fff', transition: 'width 0.2s' }} />
+              </div>
+              <span style={{ color: '#fff', fontSize: '0.75rem', marginTop: '0.5rem', letterSpacing: '0.1em' }}>UPLOADING {bgProgress}%</span>
+            </div>
+          )}
+        </div>
+        <input ref={bgInputRef} type="file" accept="image/*,video/*" style={{ display: 'none' }} onChange={e => e.target.files?.[0] && uploadHeaderBg(e.target.files[0])} />
       </div>
 
       {/* Create new */}

@@ -15,7 +15,7 @@ export default function TestimonialsSection({ testimonials, heading = 'TESTIMONI
   const displayTestimonials = testimonials.slice(0, 3)
 
   return (
-    <section style={{
+    <section id="testimonials" style={{
       background: 'var(--linen)', // White outer background
       padding: 'clamp(3rem, 6vh, 5rem) var(--page-x)',
     }}>
@@ -85,6 +85,7 @@ export default function TestimonialsSection({ testimonials, heading = 'TESTIMONI
                 WebkitLineClamp: 8,
                 WebkitBoxOrient: 'vertical',
                 textOverflow: 'ellipsis',
+                textAlign: 'justify',
               }}>
                 {t.quote.length > 320 ? `"${t.quote.substring(0, 320).trim()}..."` : `"${t.quote}"`}
               </blockquote>

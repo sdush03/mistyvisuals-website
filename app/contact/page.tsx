@@ -69,6 +69,7 @@ export default function ContactPage() {
             {/* Details */}
             {[
               ['Email',    'hello@mistyvisuals.com'],
+              ['Phone',    '+91 7560008899'],
               ['Based in', 'Delhi, India'],
               ['Available', 'India · Worldwide'],
             ].map(([label, val]) => (

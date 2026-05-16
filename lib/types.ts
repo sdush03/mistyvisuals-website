@@ -25,6 +25,7 @@ export interface Story {
   display_order: number
   is_published?: boolean
   photo_count?: number
+  tabs?: string[] | null
 }
 
 export interface StoryPhoto {
@@ -36,6 +37,7 @@ export interface StoryPhoto {
   blur_data_url: string | null
   is_cover: boolean
   display_order: number
+  tab_name?: string | null
 }
 
 export interface Film {
@@ -46,8 +48,8 @@ export interface Film {
   year: number | null
   thumbnail_url: string | null
   thumbnail_blur: string | null
-  hls_url: string | null
-  transcode_status: 'pending' | 'processing' | 'ready' | 'error'
+  youtube_url: string | null
+  youtube_video_id: string | null
   is_featured: boolean
   is_published: boolean
   display_order: number

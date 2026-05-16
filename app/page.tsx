@@ -55,13 +55,19 @@ export default async function HomePage() {
                 />
               )
             case 'full_bleed_video':
-              return <FullBleedVideo key="full_bleed_video" videoUrl={s.content?.videoUrl} />
+              return <FullBleedVideo key="full_bleed_video" videoUrl={s.content?.videoUrl} mediaType={s.content?.mediaType} />
             case 'films':
-              return films.length > 0 ? <FilmsSection key="films" films={films} /> : null
+              return films.length > 0 ? (
+                <FilmsSection 
+                  key="films" 
+                  films={films} 
+                  body="Every love story has a rhythm and a sound that photographs can't quite hold. Our cinematic wedding videography captures your destination wedding exactly as it felt, built to make you feel it all over again."
+                />
+              ) : null
             case 'testimonials':
               return testimonials.length > 0 ? <TestimonialsSection key="testimonials" testimonials={testimonials} /> : null
             case 'inquiry':
-              return <InquiryCTA key="inquiry" bgImage={s.content?.bgImage} />
+              return <InquiryCTA key="inquiry" bgImage={s.content?.bgHome || s.content?.bgImage} />
             default:
               return null
           }

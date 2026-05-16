@@ -9,6 +9,7 @@ const ALL_LINKS = [
   ['Home', '/'],
   ['Portfolio', '/stories'],
   ['Films', '/films'],
+  ['Testimonials', '/#testimonials'],
   ['About', '/about'],
   ['Enquire', '/contact']
 ]
@@ -19,7 +20,11 @@ export default function NavBar() {
   const pathname = usePathname()
 
   // Determine if this page has a hero photo at the top
-  const isOverlayPage = pathname === '/' || (pathname.startsWith('/stories/') && pathname !== '/stories')
+  const isOverlayPage = pathname === '/' || pathname === '/films' || pathname.startsWith('/stories')
+
+  // Story detail pages have their own full-bleed cover — no NavBar needed
+  const isStoryDetail = /^\/stories\/.+/.test(pathname || '')
+  if (isStoryDetail) return null
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -50,7 +55,7 @@ export default function NavBar() {
     padding: '0 var(--page-x)',
     background: !isOverlayPage || menuOpen ? 'rgba(255,255,255,0.98)' : 'transparent',
     backdropFilter: !isOverlayPage || menuOpen ? 'blur(16px)' : 'none',
-    borderBottom: !isOverlayPage ? '1px solid rgba(221,216,208,0.5)' : '1px solid transparent',
+    borderBottom: 'none',
     transition: 'background 0.4s ease, border-bottom 0.4s ease, backdrop-filter 0.4s ease',
     padding: '1.25rem var(--page-x)',
   }
