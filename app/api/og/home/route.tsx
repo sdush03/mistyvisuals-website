@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     { text: 'MISTY VISUALS', fontSize: 72 },
   ])
 
-  return new NextResponse(buffer, {
+  return new NextResponse(new Uint8Array(buffer), {
     headers: {
       'Content-Type': 'image/jpeg',
       'Cache-Control': 'public, max-age=86400, s-maxage=86400',
