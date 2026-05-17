@@ -21,6 +21,15 @@ async function fetchImage(imgPath: string | null): Promise<Buffer | null> {
   }
 }
 
+// Load Jost font at module scope for embedding in SVG
+let fontBase64 = ''
+try {
+  const fontBuffer = readFileSync(join(process.cwd(), 'public/fonts/jost.ttf'))
+  fontBase64 = fontBuffer.toString('base64')
+} catch (e) {
+  console.error('OG: Could not load jost.ttf for SVG embedding', e)
+}
+
 function createTextOverlay(
   width: number,
   height: number,
@@ -34,14 +43,27 @@ function createTextOverlay(
   for (const line of lines) {
     y += line.fontSize * 0.9
     textElements += `<text x="50%" y="${y}" text-anchor="middle" 
-      font-family="'Jost', 'Futura', 'Trebuchet MS', Arial, sans-serif" 
+      font-family="Jost, sans-serif" 
       font-size="${line.fontSize}" font-weight="400" 
       letter-spacing="${line.fontSize > 50 ? 16 : 8}" 
       fill="white">${line.text}</text>`
     y += line.fontSize * 0.4
   }
 
+  // Embed the font directly in the SVG so sharp/librsvg uses it
+  const fontFace = fontBase64
+    ? `<style>
+        @font-face {
+          font-family: 'Jost';
+          src: url('data:font/truetype;base64,${fontBase64}') format('truetype');
+          font-weight: 400;
+          font-style: normal;
+        }
+      </style>`
+    : ''
+
   const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+    ${fontFace}
     <defs>
       <linearGradient id="overlay" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stop-color="black" stop-opacity="0.15"/>
