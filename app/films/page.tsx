@@ -8,8 +8,8 @@ import FilmsSection from '@/components/FilmsSection'
 export const revalidate = 60
 
 export const metadata: Metadata = {
-  title: 'Cinematic Films | Misty Visuals',
-  description: 'Luxury wedding films by Misty Visuals.',
+  title: 'Films by Misty Visuals',
+  description: 'Luxury wedding films by Misty Visuals. Discover emotional, timeless, and immersive cinematic wedding stories captured worldwide.',
 }
 
 export default async function FilmsPage() {

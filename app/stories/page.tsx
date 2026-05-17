@@ -20,8 +20,8 @@ const formatDate = (dateStr: string | null) => {
 export const revalidate = 60
 
 export const metadata: Metadata = {
-  title: 'Real Love Stories | Misty Visuals',
-  description: 'Wedding stories by Misty Visuals — luxury photography across India and worldwide.',
+  title: 'Misty Visuals Portfolio',
+  description: 'Luxury wedding photography portfolio by Misty Visuals. Discover soft editorial, candid, and emotional love stories captured across India and worldwide.',
 }
 
 export default async function StoriesPage() {

@@ -24,13 +24,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   try {
     const story = await fetchStory(slug)
-    const desc  = [story.location, story.date].filter(Boolean).join(' · ')
+    const formattedDate = story.date ? formatDate(story.date) : null
+    const desc  = [story.subtitle, story.location, formattedDate].filter(Boolean).join(' · ')
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
+    const absImageUrl = story.cover_image_url 
+      ? (story.cover_image_url.startsWith('http') ? story.cover_image_url : `${API_BASE}${story.cover_image_url}`)
+      : null
+
     return {
-      title: `${story.title} | Misty Visuals`,
+      title: story.title,
       description: desc || 'Wedding photography by Misty Visuals.',
       openGraph: {
         title: story.title,
-        images: story.cover_image_url ? [story.cover_image_url] : [],
+        description: desc || 'Wedding photography by Misty Visuals.',
+        images: absImageUrl ? [absImageUrl] : [],
         type: 'article',
       },
     }
