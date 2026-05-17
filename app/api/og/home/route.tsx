@@ -12,14 +12,37 @@ try {
   console.error('OG font load error:', e)
 }
 
+/**
+ * Resolve an image path to a data URI to avoid self-referencing deadlocks.
+ * Relative paths (e.g. /media/...) are fetched from the internal backend API.
+ * Absolute URLs to external hosts are fetched directly.
+ */
+async function resolveImageToDataUri(imgPath: string | null): Promise<string> {
+  if (!imgPath) return ''
+
+  const INTERNAL_API = process.env.INTERNAL_API_URL || 'http://127.0.0.1:3001'
+
+  try {
+    // For relative paths, fetch from internal backend (avoids Next.js self-request deadlock)
+    const fetchUrl = imgPath.startsWith('http') ? imgPath : `${INTERNAL_API}${imgPath}`
+    const res = await fetch(fetchUrl)
+    if (!res.ok) return ''
+
+    const buffer = Buffer.from(await res.arrayBuffer())
+    // Detect content type, default to jpeg for broad compatibility
+    const ct = res.headers.get('content-type') || 'image/jpeg'
+    return `data:${ct};base64,${buffer.toString('base64')}`
+  } catch (e) {
+    console.error('OG resolveImage error:', e)
+    return ''
+  }
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const imgParam = searchParams.get('img')
-  
-  const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mistyvisuals.com'
-  let bgUrl = imgParam 
-    ? (imgParam.startsWith('http') ? imgParam : `${SITE}${imgParam}`)
-    : 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80'
+
+  const bgDataUri = await resolveImageToDataUri(imgParam)
 
   return new ImageResponse(
     (
@@ -34,9 +57,9 @@ export async function GET(request: Request) {
           backgroundColor: '#1a1512',
         }}
       >
-        {bgUrl && (
+        {bgDataUri && (
           <img
-            src={bgUrl}
+            src={bgDataUri}
             alt=""
             style={{
               position: 'absolute',
