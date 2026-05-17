@@ -11,26 +11,14 @@ try {
   console.error('OG font load error:', e)
 }
 
-export async function GET() {
-  const INTERNAL_API = process.env.INTERNAL_API_URL || 'http://127.0.0.1:3001'
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const imgParam = searchParams.get('img')
+  
   const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mistyvisuals.com'
-  let bgUrl = ''
-
-  try {
-    const res = await fetch(`${INTERNAL_API}/api/website/home`, { cache: 'no-store' })
-    if (res.ok) {
-      const data = await res.json()
-      const hero = data?.hero
-      if (hero) {
-        const mediaUrl = hero.media_type === 'image' ? hero.media_url : hero.poster_url
-        if (mediaUrl) {
-          bgUrl = mediaUrl.startsWith('http') ? mediaUrl : `${SITE}${mediaUrl}`
-        }
-      }
-    }
-  } catch (e) {
-    console.error('OG stories data fetch error:', e)
-  }
+  let bgUrl = imgParam 
+    ? (imgParam.startsWith('http') ? imgParam : `${SITE}${imgParam}`)
+    : 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80'
 
   return new ImageResponse(
     (

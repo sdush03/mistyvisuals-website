@@ -7,15 +7,29 @@ import FilmsSection from '@/components/FilmsSection'
 
 export const revalidate = 60
 
-export const metadata: Metadata = {
-  title: 'Films by Misty Visuals',
-  description: 'Luxury wedding films by Misty Visuals. Discover emotional, timeless, and immersive cinematic wedding stories captured worldwide.',
-  openGraph: {
+export async function generateMetadata(): Promise<Metadata> {
+  let ogImage = ''
+
+  try {
+    const homeData = await fetchHomeData()
+    const hero = homeData?.hero
+    if (hero) {
+      ogImage = hero.media_type === 'image' ? hero.media_url : hero.poster_url || ''
+    }
+  } catch {}
+
+  const ogUrl = ogImage ? `/api/og/films?img=${encodeURIComponent(ogImage)}` : '/api/og/films'
+
+  return {
     title: 'Films by Misty Visuals',
     description: 'Luxury wedding films by Misty Visuals. Discover emotional, timeless, and immersive cinematic wedding stories captured worldwide.',
-    type: 'website',
-    images: [{ url: '/api/og/films', width: 1200, height: 630, alt: 'Films by Misty Visuals' }],
-  },
+    openGraph: {
+      title: 'Films by Misty Visuals',
+      description: 'Luxury wedding films by Misty Visuals. Discover emotional, timeless, and immersive cinematic wedding stories captured worldwide.',
+      type: 'website',
+      images: [{ url: ogUrl, width: 1200, height: 630, alt: 'Films by Misty Visuals' }],
+    },
+  }
 }
 
 export default async function FilmsPage() {

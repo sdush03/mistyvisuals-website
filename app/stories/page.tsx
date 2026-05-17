@@ -19,15 +19,28 @@ const formatDate = (dateStr: string | null) => {
 
 export const revalidate = 60
 
-export const metadata: Metadata = {
-  title: 'Misty Visuals Portfolio',
-  description: 'Luxury wedding photography portfolio by Misty Visuals. Discover soft editorial, candid, and emotional love stories captured across India and worldwide.',
-  openGraph: {
+export async function generateMetadata(): Promise<Metadata> {
+  let ogImage = ''
+
+  try {
+    const stories = await fetchStories()
+    if (stories.length > 0) {
+      ogImage = stories[0].grid_image_url || stories[0].cover_image_url || ''
+    }
+  } catch {}
+
+  const ogUrl = ogImage ? `/api/og/stories?img=${encodeURIComponent(ogImage)}` : '/api/og/stories'
+
+  return {
     title: 'Misty Visuals Portfolio',
     description: 'Luxury wedding photography portfolio by Misty Visuals. Discover soft editorial, candid, and emotional love stories captured across India and worldwide.',
-    type: 'website',
-    images: [{ url: '/api/og/stories', width: 1200, height: 630, alt: 'Misty Visuals Portfolio' }],
-  },
+    openGraph: {
+      title: 'Misty Visuals Portfolio',
+      description: 'Luxury wedding photography portfolio by Misty Visuals. Discover soft editorial, candid, and emotional love stories captured across India and worldwide.',
+      type: 'website',
+      images: [{ url: ogUrl, width: 1200, height: 630, alt: 'Misty Visuals Portfolio' }],
+    },
+  }
 }
 
 export default async function StoriesPage() {
