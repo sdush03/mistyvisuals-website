@@ -23,12 +23,11 @@ export default async function Image() {
     console.error('OG Image fetch error:', e)
   }
 
-  // Fetch Jost Font from local public folder
+  // Fetch Jost Font securely via HTTP
   let fontData: any = null
   try {
-    const fs = await import('fs')
-    const path = await import('path')
-    fontData = fs.readFileSync(path.join(process.cwd(), 'public/fonts/jost.ttf'))
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mistyvisuals.com'
+    fontData = await fetch(new URL('/fonts/jost.ttf', siteUrl)).then(res => res.arrayBuffer())
   } catch (e) {
     console.error('Font load error:', e)
   }
@@ -97,14 +96,16 @@ export default async function Image() {
     ),
     {
       ...size,
-      fonts: [
-        {
-          name: 'Jost',
-          data: fontData,
-          style: 'normal',
-          weight: 400,
-        },
-      ],
+      ...(fontData ? {
+        fonts: [
+          {
+            name: 'Jost',
+            data: fontData,
+            style: 'normal',
+            weight: 400,
+          },
+        ]
+      } : {}),
     }
   )
 }
