@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 import { fetchHomeData } from '@/lib/api'
 
-export const runtime = 'edge'
+
 export const alt = 'Misty Visuals — Luxury Wedding Photography & Films'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
@@ -23,10 +23,15 @@ export default async function Image() {
     console.error('OG Image fetch error:', e)
   }
 
-  // Fetch Jost Font from Google Fonts CDN
-  const fontData = await fetch(
-    new URL('https://fonts.gstatic.com/s/jost/v15/9cH7GywtT0LF1Nz34GAy.ttf')
-  ).then((res) => res.arrayBuffer())
+  // Fetch Jost Font from local public folder
+  let fontData: any = null
+  try {
+    const fs = await import('fs')
+    const path = await import('path')
+    fontData = fs.readFileSync(path.join(process.cwd(), 'public/fonts/jost.ttf'))
+  } catch (e) {
+    console.error('Font load error:', e)
+  }
 
   return new ImageResponse(
     (
