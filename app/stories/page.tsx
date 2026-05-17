@@ -23,10 +23,9 @@ export async function generateMetadata(): Promise<Metadata> {
   let ogImage = ''
 
   try {
-    const stories = await fetchStories()
-    if (stories.length > 0) {
-      ogImage = stories[0].grid_image_url || stories[0].cover_image_url || ''
-    }
+    const homeData = await fetchHomeData()
+    const storiesSection = homeData?.sections?.find((s: any) => s.key === 'stories')
+    ogImage = storiesSection?.content?.bgImage || ''
   } catch {}
 
   const ogUrl = ogImage ? `/api/og/stories?img=${encodeURIComponent(ogImage)}` : '/api/og/stories'
