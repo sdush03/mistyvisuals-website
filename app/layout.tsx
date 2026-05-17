@@ -3,7 +3,7 @@ import './globals.css'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3002'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mistyvisuals.com'),
   title: { default: 'Misty Visuals — Wedding Photography & Films', template: '%s | Misty Visuals' },
   description: 'Luxury wedding photography and cinematic films across India and worldwide. Soft editorial. Emotional. Timeless.',
   openGraph: {
