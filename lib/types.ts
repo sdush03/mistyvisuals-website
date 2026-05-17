@@ -18,6 +18,7 @@ export interface Story {
   location: string | null
   date: string | null
   category: string | null
+  grid_image_url: string | null
   cover_image_url: string | null
   cover_image_mobile_url: string | null
   cover_blur_data_url: string | null

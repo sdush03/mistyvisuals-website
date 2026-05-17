@@ -99,19 +99,14 @@ function StoryCard({ story, priority }: { story: Story; priority: boolean }) {
           background: 'var(--linen-dark)',
           marginBottom: '0.875rem',
         }}>
-          {story.cover_image_url ? (
-            <picture>
-              {story.cover_image_mobile_url && (
-                <source media="(max-width: 767px)" srcSet={story.cover_image_mobile_url} type="image/webp" />
-              )}
-              <img
-                src={story.cover_image_url}
-                alt={story.title}
-                loading={priority ? 'eager' : 'lazy'}
-                decoding="async"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-              />
-            </picture>
+          {story.grid_image_url || story.cover_image_url ? (
+            <img
+              src={story.grid_image_url || story.cover_image_url || ''}
+              alt={story.title}
+              loading={priority ? 'eager' : 'lazy'}
+              decoding="async"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
           ) : (
             <div style={{ width: '100%', height: '100%', background: 'var(--linen-dark)' }} />
           )}

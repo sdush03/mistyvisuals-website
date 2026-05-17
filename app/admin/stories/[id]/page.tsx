@@ -97,10 +97,23 @@ export default function AdminStoryEditorPage() {
     setUploadProgress(0)
   }
 
-  const setCover = async (photoId: number) => {
-    await apiFetch(`/api/website/story-photos/${photoId}/cover`, { method: 'PATCH' })
-    setPhotos(prev => prev.map(p => ({ ...p, is_cover: p.id === photoId })))
-    setStory((s: any) => ({ ...s, cover_image_url: photos.find(p => p.id === photoId)?.file_url }))
+  const uploadCover = async (file: File, type: 'grid' | 'desktop' | 'mobile') => {
+    setUploading(true)
+    const form = new FormData()
+    form.append('file', file)
+    form.append('coverType', type)
+
+    const res = await apiFetch(`/api/website/stories/${id}/covers`, {
+      method: 'POST',
+      body: form
+    })
+    const data = await res.json()
+    if (res.ok) {
+      setStory(data.story)
+    } else {
+      alert('Failed to upload cover: ' + (data.error || 'Unknown error'))
+    }
+    setUploading(false)
   }
 
   const deletePhoto = async (photoId: number) => {
@@ -346,7 +359,48 @@ export default function AdminStoryEditorPage() {
         </div>
       </div>
 
-      
+      {/* Story Covers */}
+      <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '1.5rem', marginBottom: '2rem' }}>
+        <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', fontWeight: 400, marginBottom: '1rem' }}>Story Covers</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
+          {[
+            { label: 'Grid Cover (Square/Landscape)', key: 'grid_image_url', type: 'grid' as const, desc: 'Shows on Homepage and /stories grid' },
+            { label: 'Desktop Cover (Landscape)', key: 'cover_image_url', type: 'desktop' as const, desc: 'Shows on Desktop story view' },
+            { label: 'Mobile Cover (Portrait)', key: 'cover_image_mobile_url', type: 'mobile' as const, desc: 'Shows on Mobile story view' },
+          ].map(cover => (
+            <div key={cover.type}>
+              <label style={label}>{cover.label}</label>
+              <p style={{ fontSize: '0.7rem', color: '#888', marginBottom: '0.5rem' }}>{cover.desc}</p>
+              <div style={{
+                position: 'relative', aspectRatio: cover.type === 'mobile' ? '3/4' : '3/2',
+                background: '#f0ede8', borderRadius: '8px', overflow: 'hidden', border: '1px solid #eee'
+              }}>
+                {story[cover.key] ? (
+                  <img src={story[cover.key]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#bbb', fontSize: '0.8rem' }}>
+                    No cover
+                  </div>
+                )}
+                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', opacity: 0, transition: 'opacity 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                  onMouseLeave={e => e.currentTarget.style.opacity = '0'}
+                >
+                  <button onClick={() => document.getElementById(`cover-${cover.type}`)?.click()} style={{
+                    background: '#fff', color: '#000', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 500
+                  }}>
+                    Upload New
+                  </button>
+                  <input type="file" id={`cover-${cover.type}`} style={{ display: 'none' }} accept="image/*"
+                    onChange={e => { if (e.target.files?.[0]) uploadCover(e.target.files[0], cover.type) }}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Photo upload per tab */}
       {['All', ...tabs].map(tab => {
         const isAll = tab === 'All';
@@ -418,10 +472,7 @@ export default function AdminStoryEditorPage() {
                         Cover
                       </div>
                     )}
-                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(10,8,6,0.6)', padding: '0.35rem', display: 'flex', justifyContent: 'space-between' }}>
-                      <button onClick={() => setCover(photo.id)} title="Set as cover" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.875rem', lineHeight: 1 }}>
-                        {photo.is_cover ? '⭐' : '☆'}
-                      </button>
+                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(10,8,6,0.6)', padding: '0.35rem', display: 'flex', justifyContent: 'flex-end' }}>
                       <button onClick={() => deletePhoto(photo.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fc8181', fontSize: '0.75rem' }}>
                         ✕
                       </button>

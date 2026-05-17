@@ -40,7 +40,7 @@ export default async function StoriesPage() {
     stories = []
   }
 
-  const finalHeaderBg = headerBg || (stories.length > 0 ? stories[0].cover_image_url : null)
+  const finalHeaderBg = headerBg || (stories.length > 0 ? (stories[0].grid_image_url || stories[0].cover_image_url) : null)
 
   return (
     <>
