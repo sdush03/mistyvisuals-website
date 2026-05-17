@@ -17,10 +17,11 @@ export async function resolveImageToDataUri(imgPath: string | null): Promise<str
 
     const rawBuffer = Buffer.from(await res.arrayBuffer())
 
-    // Always convert to JPEG for Satori compatibility (webp not supported)
+    // Convert to JPEG for Satori compatibility (webp not supported)
+    // Keep quality low to stay under WhatsApp's ~300KB OG image limit
     const jpegBuffer = await sharp(rawBuffer)
       .resize(1200, 630, { fit: 'cover' })
-      .jpeg({ quality: 80 })
+      .jpeg({ quality: 50 })
       .toBuffer()
 
     return `data:image/jpeg;base64,${jpegBuffer.toString('base64')}`
