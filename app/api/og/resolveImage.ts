@@ -1,6 +1,8 @@
 import sharp from 'sharp'
+import { ImageResponse } from 'next/og'
 import { readFileSync } from 'fs'
 import { join } from 'path'
+import React from 'react'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,59 +30,63 @@ async function fetchImage(imgPath: string | null): Promise<Buffer | null> {
 }
 
 /**
- * Use Satori to render text with the Jost font as a transparent PNG overlay.
- * Satori handles custom fonts natively — no system font install needed.
+ * Use next/og ImageResponse to render text with Jost font as a transparent PNG.
+ * ImageResponse bundles satori+resvg internally and works with Turbopack.
  */
 async function renderTextOverlay(
   width: number,
   height: number,
   lines: { text: string; fontSize: number }[]
 ): Promise<Buffer> {
-  // Dynamic import to avoid bundling issues
-  const satori = (await import('satori')).default
-  const { Resvg } = await import('@resvg/resvg-js')
-
-  const jsx = {
-    type: 'div',
-    props: {
+  const element = React.createElement(
+    'div',
+    {
       style: {
         display: 'flex',
-        flexDirection: 'column',
+        flexDirection: 'column' as const,
         alignItems: 'center',
         justifyContent: 'center',
         width: '100%',
         height: '100%',
-        // Gradient overlay baked into this layer
         background: 'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.50) 100%)',
       },
-      children: lines.map((line) => ({
-        type: 'span',
-        props: {
-          style: {
-            fontFamily: 'Jost',
-            fontSize: `${line.fontSize}px`,
-            fontWeight: 400,
-            letterSpacing: line.fontSize > 50 ? '0.18em' : '0.25em',
-            color: '#ffffff',
-            textTransform: 'uppercase',
-            marginBottom: lines.length > 1 ? '8px' : '0',
-          },
-          children: line.text,
-        },
-      })),
     },
-  }
+    ...lines.map((line) =>
+      React.createElement('span', {
+        key: line.text,
+        style: {
+          fontFamily: 'Jost',
+          fontSize: `${line.fontSize}px`,
+          fontWeight: 400,
+          letterSpacing: line.fontSize > 50 ? '0.18em' : '0.25em',
+          color: '#ffffff',
+          textTransform: 'uppercase' as const,
+          marginBottom: lines.length > 1 ? '8px' : '0',
+        },
+        children: line.text,
+      })
+    )
+  )
 
-  const svg = await satori(jsx as any, {
+  const imgResponse = new ImageResponse(element, {
     width,
     height,
-    fonts: fontData
-      ? [{ name: 'Jost', data: fontData, weight: 400 as const, style: 'normal' as const }]
-      : [],
+    ...(fontData
+      ? {
+          fonts: [
+            {
+              name: 'Jost',
+              data: fontData,
+              weight: 400 as const,
+              style: 'normal' as const,
+            },
+          ],
+        }
+      : {}),
   })
 
-  const resvg = new Resvg(svg, { fitTo: { mode: 'width', value: width } })
-  return Buffer.from(resvg.render().asPng())
+  const arrayBuffer = await imgResponse.arrayBuffer()
+  return Buffer.from(arrayBuffer)
 }
 
 export async function generateOgImage(
@@ -102,7 +108,7 @@ export async function generateOgImage(
     })
   }
 
-  // Render text + gradient overlay using Satori (supports custom fonts)
+  // Render text overlay with Jost font via next/og ImageResponse
   const textOverlay = await renderTextOverlay(width, height, lines)
 
   // Composite and output compressed JPEG
