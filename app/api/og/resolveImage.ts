@@ -1,13 +1,19 @@
-import { NextResponse } from 'next/server'
 import sharp from 'sharp'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 
 export const dynamic = 'force-dynamic'
 
-// Load font path for SVG text (we use SVG overlay instead of Satori for size control)
 const INTERNAL_API = process.env.INTERNAL_API_URL || 'http://127.0.0.1:3001'
-const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mistyvisuals.com'
+
+// Load Jost font once at module scope
+let fontData: ArrayBuffer | null = null
+try {
+  const buf = readFileSync(join(process.cwd(), 'public/fonts/jost.ttf'))
+  fontData = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength)
+} catch (e) {
+  console.error('OG: Could not load jost.ttf', e)
+}
 
 async function fetchImage(imgPath: string | null): Promise<Buffer | null> {
   if (!imgPath) return null
@@ -21,60 +27,60 @@ async function fetchImage(imgPath: string | null): Promise<Buffer | null> {
   }
 }
 
-// Load Jost font at module scope for embedding in SVG
-let fontBase64 = ''
-try {
-  const fontBuffer = readFileSync(join(process.cwd(), 'public/fonts/jost.ttf'))
-  fontBase64 = fontBuffer.toString('base64')
-} catch (e) {
-  console.error('OG: Could not load jost.ttf for SVG embedding', e)
-}
-
-function createTextOverlay(
+/**
+ * Use Satori to render text with the Jost font as a transparent PNG overlay.
+ * Satori handles custom fonts natively — no system font install needed.
+ */
+async function renderTextOverlay(
   width: number,
   height: number,
   lines: { text: string; fontSize: number }[]
-): Buffer {
-  const totalHeight = lines.reduce((sum, l) => sum + l.fontSize * 1.3, 0)
-  const startY = (height - totalHeight) / 2
+): Promise<Buffer> {
+  // Dynamic import to avoid bundling issues
+  const satori = (await import('satori')).default
+  const { Resvg } = await import('@resvg/resvg-js')
 
-  let textElements = ''
-  let y = startY
-  for (const line of lines) {
-    y += line.fontSize * 0.9
-    textElements += `<text x="50%" y="${y}" text-anchor="middle" 
-      font-family="Jost, sans-serif" 
-      font-size="${line.fontSize}" font-weight="400" 
-      letter-spacing="${line.fontSize > 50 ? 16 : 8}" 
-      fill="white">${line.text}</text>`
-    y += line.fontSize * 0.4
+  const jsx = {
+    type: 'div',
+    props: {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        height: '100%',
+        // Gradient overlay baked into this layer
+        background: 'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.50) 100%)',
+      },
+      children: lines.map((line) => ({
+        type: 'span',
+        props: {
+          style: {
+            fontFamily: 'Jost',
+            fontSize: `${line.fontSize}px`,
+            fontWeight: 400,
+            letterSpacing: line.fontSize > 50 ? '0.18em' : '0.25em',
+            color: '#ffffff',
+            textTransform: 'uppercase',
+            marginBottom: lines.length > 1 ? '8px' : '0',
+          },
+          children: line.text,
+        },
+      })),
+    },
   }
 
-  // Embed the font directly in the SVG so sharp/librsvg uses it
-  const fontFace = fontBase64
-    ? `<style>
-        @font-face {
-          font-family: 'Jost';
-          src: url('data:font/truetype;base64,${fontBase64}') format('truetype');
-          font-weight: 400;
-          font-style: normal;
-        }
-      </style>`
-    : ''
+  const svg = await satori(jsx as any, {
+    width,
+    height,
+    fonts: fontData
+      ? [{ name: 'Jost', data: fontData, weight: 400 as const, style: 'normal' as const }]
+      : [],
+  })
 
-  const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-    ${fontFace}
-    <defs>
-      <linearGradient id="overlay" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="black" stop-opacity="0.15"/>
-        <stop offset="100%" stop-color="black" stop-opacity="0.50"/>
-      </linearGradient>
-    </defs>
-    <rect width="${width}" height="${height}" fill="url(#overlay)"/>
-    ${textElements}
-  </svg>`
-
-  return Buffer.from(svg)
+  const resvg = new Resvg(svg, { fitTo: { mode: 'width', value: width } })
+  return Buffer.from(resvg.render().asPng())
 }
 
 export async function generateOgImage(
@@ -84,7 +90,7 @@ export async function generateOgImage(
   const width = 1200
   const height = 630
 
-  // Start with the background image or a solid dark color
+  // Background: photo or solid dark color
   const imgBuffer = await fetchImage(imgPath)
 
   let base: sharp.Sharp
@@ -96,11 +102,12 @@ export async function generateOgImage(
     })
   }
 
-  // Composite the text overlay SVG
-  const overlay = createTextOverlay(width, height, lines)
+  // Render text + gradient overlay using Satori (supports custom fonts)
+  const textOverlay = await renderTextOverlay(width, height, lines)
 
+  // Composite and output compressed JPEG
   const result = await base
-    .composite([{ input: overlay, top: 0, left: 0 }])
+    .composite([{ input: textOverlay, top: 0, left: 0 }])
     .jpeg({ quality: 75 })
     .toBuffer()
 
