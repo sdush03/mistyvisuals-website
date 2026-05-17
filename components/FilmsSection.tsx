@@ -142,27 +142,26 @@ export default function FilmsSection({
                   </svg>
                 </div>
               )}
-              {/* Play icon overlay */}
-              {film.thumbnail_url && film.youtube_video_id && (
+              {/* Play icon — always visible, scales on hover */}
+              {film.youtube_video_id && (
                 <div style={{
                   position: 'absolute', inset: 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  opacity: 0, background: 'rgba(0,0,0,0.15)',
-                  transition: 'all 0.4s ease',
-                }} className="film-play">
-                  <div style={{
-                    width: '3.5rem', height: '3.5rem', borderRadius: '50%',
-                    background: 'rgba(0,0,0,0.4)',
-                    backdropFilter: 'blur(4px)',
-                    border: '1px solid rgba(255,255,255,0.4)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transform: 'scale(0.95)',
-                    transition: 'transform 0.4s ease',
-                  }} className="play-btn-inner">
-                    <svg width="12" height="14" viewBox="0 0 10 12" fill="rgba(255,255,255,0.95)" style={{ marginLeft: '2px' }}>
-                      <polygon points="0,0 10,6 0,12" />
-                    </svg>
-                  </div>
+                  pointerEvents: 'none',
+                }} className="film-play-wrap">
+                  <svg
+                    className="film-play-icon"
+                    width="36" height="40"
+                    viewBox="0 0 24 28"
+                    fill="white"
+                    style={{
+                      filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.5))',
+                      transition: 'transform 0.35s ease',
+                      transform: 'scale(1)',
+                    }}
+                  >
+                    <polygon points="0,0 24,14 0,28" />
+                  </svg>
                 </div>
               )}
             </div>
@@ -244,7 +243,7 @@ export default function FilmsSection({
             <iframe
               width="100%"
               height="100%"
-              src={`https://www.youtube-nocookie.com/embed/${activeVideoId}?autoplay=1&rel=0&modestbranding=1&showinfo=0&controls=1`}
+              src={`https://www.youtube-nocookie.com/embed/${activeVideoId}?autoplay=1&rel=0&modestbranding=1&showinfo=0&controls=1&vq=hd2160&playsinline=1`}
               title="YouTube video player"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -255,8 +254,10 @@ export default function FilmsSection({
       )}
 
       <style>{`
-        .hover-scale:hover .film-play { opacity: 1 !important; }
-        .hover-scale:hover .play-btn-inner { transform: scale(1) !important; }
+        .hover-scale { overflow: hidden; }
+        .hover-scale img { transition: transform 0.5s ease; }
+        .hover-scale:hover img { transform: scale(1.05); }
+        .hover-scale:hover .film-play-icon { transform: scale(1.18) !important; }
         .featured-cta:hover { background: #000 !important; }
         @keyframes fadeIn {
           from { opacity: 0; }

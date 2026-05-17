@@ -202,8 +202,10 @@ export default function StoryGallery({ photos, tabs }: Props) {
       )}
 
       <style>{`
+        .gallery-item { overflow: hidden; }
+        .gallery-item img { transition: transform 0.5s ease; }
         @media (hover: hover) {
-          .gallery-item:hover img { opacity: 0.88; transition: opacity 0.35s ease; }
+          .gallery-item:hover img { transform: scale(1.04); }
         }
         @media (max-width: 640px) {
           .story-masonry { columns: 2 160px !important; padding: 8px 12px 24px !important; column-gap: 8px !important; }
