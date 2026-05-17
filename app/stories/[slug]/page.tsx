@@ -26,9 +26,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const story = await fetchStory(slug)
     const formattedDate = story.date ? formatDate(story.date) : null
     const desc  = [story.subtitle, story.location, formattedDate].filter(Boolean).join(' · ')
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
+    const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mistyvisuals.com'
     const absImageUrl = story.cover_image_url 
-      ? (story.cover_image_url.startsWith('http') ? story.cover_image_url : `${API_BASE}${story.cover_image_url}`)
+      ? (story.cover_image_url.startsWith('http') ? story.cover_image_url : `${SITE}${story.cover_image_url}`)
       : null
 
     return {
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       openGraph: {
         title: story.title,
         description: desc || 'Wedding photography by Misty Visuals.',
-        images: absImageUrl ? [absImageUrl] : [],
+        images: absImageUrl ? [{ url: absImageUrl, width: 1200, height: 630, alt: story.title }] : [],
         type: 'article',
       },
     }

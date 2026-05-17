@@ -12,14 +12,31 @@ import InstagramFeed from '@/components/InstagramFeed'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
-  title: 'Misty Visuals — Luxury Wedding Photography & Films',
-  description: 'Soft editorial luxury wedding photography and cinematic films across India and worldwide.',
-  openGraph: {
+export async function generateMetadata(): Promise<Metadata> {
+  const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mistyvisuals.com'
+  let ogImage: string | undefined
+
+  try {
+    const homeData = await fetchHomeData()
+    const hero = homeData?.hero
+    if (hero) {
+      const mediaUrl = hero.media_type === 'image' ? hero.media_url : hero.poster_url
+      if (mediaUrl) {
+        ogImage = mediaUrl.startsWith('http') ? mediaUrl : `${SITE}${mediaUrl}`
+      }
+    }
+  } catch {}
+
+  return {
     title: 'Misty Visuals — Luxury Wedding Photography & Films',
     description: 'Soft editorial luxury wedding photography and cinematic films across India and worldwide.',
-    type: 'website',
-  },
+    openGraph: {
+      title: 'Misty Visuals — Luxury Wedding Photography & Films',
+      description: 'Soft editorial luxury wedding photography and cinematic films across India and worldwide.',
+      type: 'website',
+      ...(ogImage ? { images: [{ url: ogImage, width: 1200, height: 630, alt: 'Misty Visuals' }] } : {}),
+    },
+  }
 }
 
 export default async function HomePage() {
