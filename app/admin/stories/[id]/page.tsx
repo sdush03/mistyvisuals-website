@@ -24,7 +24,7 @@ export default function AdminStoryEditorPage() {
   const fileRef = useRef<HTMLInputElement>(null)
   const [draggingId, setDraggingId] = useState<number | null>(null)
   const [catDropdownOpen, setCatDropdownOpen] = useState(false)
-  const [tabsString, setTabsString] = useState('')
+  const [tabs, setTabs] = useState<string[]>([])
   const [newCat, setNewCat] = useState('')
   const [allCategories, setAllCategories] = useState<string[]>([])
   const [allStories, setAllStories] = useState<any[]>([])
@@ -39,7 +39,7 @@ export default function AdminStoryEditorPage() {
       if (storyData.date) storyData.date = new Date(storyData.date).toISOString().split('T')[0]
       setStory(storyData)
       setPhotos((storyData.photos || []).sort((a: Photo, b: Photo) => a.display_order - b.display_order))
-      setTabsString((storyData.tabs || []).join(', '))
+      setTabs(storyData.tabs || [])
       
       const cats = new Set<string>()
       allStoriesData.forEach((s: any) => {
@@ -62,7 +62,7 @@ export default function AdminStoryEditorPage() {
         location: story.location, date: story.date,
         category: story.category, is_published: story.is_published,
         is_featured: story.is_featured,
-        tabs: tabsString.split(',').map(t=>t.trim()).filter(Boolean),
+        tabs: tabs,
       }),
     })
     setSaving(false)
@@ -106,6 +106,25 @@ export default function AdminStoryEditorPage() {
   const deletePhoto = async (photoId: number) => {
     await apiFetch(`/api/website/story-photos/${photoId}`, { method: 'DELETE' })
     setPhotos(prev => prev.filter(p => p.id !== photoId))
+  }
+
+  const renameTab = async (oldName: string, newName: string) => {
+    if (!newName || newName.trim() === '' || oldName === newName) return
+    const trimmedNewName = newName.trim()
+    
+    // Optimistic UI update
+    setTabs(prev => prev.map(t => t === oldName ? trimmedNewName : t))
+    setPhotos(prev => prev.map(p => p.tab_name === oldName ? { ...p, tab_name: trimmedNewName } : p))
+    
+    const res = await apiFetch(`/api/website/stories/${id}/tabs/rename`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ oldName, newName: trimmedNewName })
+    })
+    
+    if (!res.ok) {
+      alert('Failed to rename tab. Please refresh the page.')
+    }
   }
 
   // Drag-drop reorder
@@ -160,11 +179,45 @@ export default function AdminStoryEditorPage() {
 
           
           {/* Tabs Input */}
-          <div>
-            <label style={label}>Event Tabs (Comma separated)</label>
-            <input type="text" style={input} placeholder="e.g. Haldi, Wedding" value={tabsString}
-              onChange={e => setTabsString(e.target.value)} />
-            <p style={{ fontSize: '0.7rem', color: '#888', marginTop: '0.3rem' }}>Creates separate galleries for each event.</p>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <label style={label}>Event Tabs</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              {tabs.map((tab, idx) => (
+                <div key={idx} style={{
+                  display: 'flex', alignItems: 'center', gap: '0.5rem',
+                  background: '#f7f5f2', padding: '0.4rem 0.75rem', borderRadius: '20px',
+                  border: '1px solid #e0e0e0', fontSize: '0.8125rem'
+                }}>
+                  <span>{tab}</span>
+                  <button onClick={() => {
+                    const newName = prompt(`Rename event tab "${tab}" to:`, tab)
+                    if (newName !== null) renameTab(tab, newName)
+                  }} title="Rename" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888', padding: 0, display: 'flex', alignItems: 'center' }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                  </button>
+                  <button onClick={() => {
+                    if (confirm(`Remove event tab "${tab}"? (Photos will remain in the gallery but lose this tab assignment)`)) {
+                      setTabs(prev => prev.filter(t => t !== tab))
+                      // We don't automatically delete from photos here to prevent accidental data loss, saving the story updates the tab list
+                    }
+                  }} title="Remove" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#e53e3e', padding: 0, marginLeft: '0.2rem', fontWeight: 'bold' }}>
+                    ×
+                  </button>
+                </div>
+              ))}
+              <button onClick={() => {
+                const newTab = prompt('New Event Tab Name (e.g., Mehendi, Sangeet):')
+                if (newTab && newTab.trim() && !tabs.includes(newTab.trim())) {
+                  setTabs(prev => [...prev, newTab.trim()])
+                }
+              }} style={{
+                background: '#fff', border: '1px dashed #ccc', borderRadius: '20px',
+                padding: '0.4rem 0.75rem', fontSize: '0.8125rem', cursor: 'pointer', color: '#555'
+              }}>
+                + Add Event
+              </button>
+            </div>
+            <p style={{ fontSize: '0.7rem', color: '#888', marginTop: '0.3rem' }}>Creates separate galleries for each event. Renaming automatically updates associated photos.</p>
           </div>
 
           {/* Custom Category Multi-Select Dropdown */}
@@ -295,7 +348,7 @@ export default function AdminStoryEditorPage() {
 
       
       {/* Photo upload per tab */}
-      {['All', ...tabsString.split(',').map(t=>t.trim()).filter(Boolean)].map(tab => {
+      {['All', ...tabs].map(tab => {
         const isAll = tab === 'All';
         const tabPhotos = isAll ? photos.filter(p => !p.tab_name || p.tab_name === 'All') : photos.filter(p => p.tab_name === tab);
         return (
