@@ -4,6 +4,14 @@ import { useEffect, useState } from 'react'
 
 export default function InstagramFeed() {
   const [posts, setPosts] = useState<any[]>([])
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth <= 1024)
+    const handleResize = () => setIsMobile(window.innerWidth <= 1024)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     fetch('https://feeds.behold.so/7NrB8wJCEhLbccHr5z15')
@@ -11,7 +19,7 @@ export default function InstagramFeed() {
       .then(data => {
         const postsArray = data.posts || data
         if (!Array.isArray(postsArray)) return
-        const feed = postsArray.slice(0, 6).map((item: any) => ({
+        const feed = postsArray.slice(0, 9).map((item: any) => ({
           id: item.id,
           url: item.permalink,
           image: item.mediaType === 'VIDEO' && item.thumbnailUrl ? item.thumbnailUrl : item.mediaUrl
@@ -20,6 +28,8 @@ export default function InstagramFeed() {
       })
       .catch(err => console.error('Error fetching Instagram feed:', err))
   }, [])
+
+  const displayPosts = isMobile ? posts : posts.slice(0, 6)
 
   return (
     <section style={{
@@ -45,9 +55,9 @@ export default function InstagramFeed() {
         </h2>
       </div>
 
-      {/* Grid: 6 columns on desktop, 3 on tablet, 2 on mobile */}
+      {/* Grid: 6 columns on desktop, 3 on mobile */}
       <div className="ig-grid">
-        {posts.map(post => (
+        {displayPosts.map(post => (
           <a 
             key={post.id} 
             href={post.url} 
@@ -106,7 +116,7 @@ export default function InstagramFeed() {
         }
         @media (max-width: 1024px) {
           .ig-grid { 
-            grid-template-columns: repeat(2, 1fr); 
+            grid-template-columns: repeat(3, 1fr); 
             gap: 0.5rem; 
           }
         }

@@ -27,7 +27,8 @@ export default function TestimonialsSection({ testimonials, heading = 'TESTIMONI
       }}>
         
         {/* Header Row: Title on Left, CTA on Right */}
-        <div style={{ 
+        {/* Header Row: Title on Left, CTA on Right */}
+        <div className="testi-header" style={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center',
@@ -45,7 +46,7 @@ export default function TestimonialsSection({ testimonials, heading = 'TESTIMONI
             {heading}
           </p>
           
-          <Link href="/testimonials" className="featured-cta" style={{ 
+          <Link href="/testimonials" className="testi-cta testi-cta-desktop" style={{ 
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.5rem',
@@ -58,7 +59,8 @@ export default function TestimonialsSection({ testimonials, heading = 'TESTIMONI
             background: '#222',
             padding: '1.25rem 2rem',
             textDecoration: 'none',
-            transition: 'background 0.3s ease'
+            transition: 'background 0.3s ease',
+            whiteSpace: 'nowrap'
           }}>
             SEE MORE <span style={{ fontSize: '0.875rem', lineHeight: 1 }}>&rarr;</span>
           </Link>
@@ -73,7 +75,7 @@ export default function TestimonialsSection({ testimonials, heading = 'TESTIMONI
           {displayTestimonials.map((t) => (
             <div key={t.id} style={{ display: 'flex', flexDirection: 'column' }}>
               {/* Quote - Fixed height with truncation */}
-              <blockquote className="mv-body" style={{
+              <blockquote className="mv-body testi-quote" style={{
                 fontFamily: 'var(--font-lora)',
                 fontSize: '16px',
                 letterSpacing: '0em',
@@ -104,8 +106,41 @@ export default function TestimonialsSection({ testimonials, heading = 'TESTIMONI
             </div>
           ))}
         </div>
+        
+        {/* Mobile CTA (hidden on desktop) */}
+        <div className="testi-cta-mobile-wrapper" style={{ display: 'none', marginTop: '3rem', textAlign: 'right' }}>
+          <Link href="/testimonials" className="testi-cta" style={{ 
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontFamily: 'var(--font-sans)',
+            fontSize: '0.6875rem',
+            fontWeight: 400,
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            color: '#ffffff',
+            background: '#222',
+            padding: '1.25rem 2rem',
+            textDecoration: 'none',
+            transition: 'background 0.3s ease',
+            whiteSpace: 'nowrap'
+          }}>
+            SEE MORE <span style={{ fontSize: '0.875rem', lineHeight: 1 }}>&rarr;</span>
+          </Link>
+        </div>
 
       </div>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .testi-header { flex-direction: column; align-items: flex-start !important; gap: 1.5rem; margin-bottom: 2rem !important; }
+          .testi-cta { padding: 1rem 1.5rem !important; font-size: 0.6rem !important; }
+          .testi-quote { text-align: justify !important; text-align-last: left !important; }
+          .testi-cta-desktop { display: none !important; }
+          .testi-cta-mobile-wrapper { display: block !important; }
+        }
+        .testi-cta:hover { background: #000 !important; }
+      `}</style>
     </section>
   )
 }

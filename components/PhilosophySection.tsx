@@ -19,10 +19,8 @@ export default function PhilosophySection({
   const img2 = photo2 || '/philosophy-portrait.jpg'
 
   return (
-    <section style={{
+    <section className="phil-section" style={{
       background: 'var(--linen)',
-      padding: 'clamp(6rem, 12vh, 10rem) var(--page-x)',
-      minHeight: '100dvh',
       display: 'flex',
       alignItems: 'center',
     }}>
@@ -76,11 +74,12 @@ export default function PhilosophySection({
         </div>
 
         {/* ── Right Text Column ── */}
-        <div style={{ 
+        {/* ── Right Text Column ── */}
+        <div className="phil-text-col" style={{ 
           paddingLeft: 'clamp(0rem, 2vw, 2rem)',
         }}>
           {/* Label */}
-          <p className="mv-label" style={{
+          <p className="mv-label phil-label" style={{
             color: '#888', // muted gray
             marginBottom: '1.8rem', // Uniform tighter spacing
           }}>
@@ -88,7 +87,7 @@ export default function PhilosophySection({
           </p>
 
           {/* Heading — extremely thin, generous line-height, airy */}
-          <h2 className="mv-heading" style={{
+          <h2 className="mv-heading phil-heading" style={{
             color: 'var(--ink)',
             marginBottom: '1.8rem', // Uniform tighter spacing
             maxWidth: '75%', // Force tighter wrapping
@@ -98,13 +97,12 @@ export default function PhilosophySection({
           </h2>
 
           {/* Body text — muted gray, elegant line height */}
-          <div style={{ marginBottom: '1.8rem' }}>
+          <div className="phil-body-wrapper" style={{ marginBottom: '1.8rem' }}>
             {body.split('\n\n').map((para, i, arr) => (
               <p
                 key={i}
                 className="mv-body"
                 style={{
-                  color: '#666', // Muted gray body
                   marginBottom: i < arr.length - 1 ? '1.5rem' : 0,
                   maxWidth: '100%', // Allow text to reach right edge
                 }}
@@ -133,10 +131,28 @@ export default function PhilosophySection({
       </div>
 
       <style>{`
+        .phil-section {
+          padding: clamp(6rem, 12vh, 10rem) var(--page-x);
+          min-height: 100dvh;
+        }
         @media (max-width: 960px) {
-          .phil-grid { grid-template-columns: 1fr !important; gap: 4rem !important; }
-          .phil-img-small { transform: none !important; width: 80% !important; margin: 0 auto; aspect-ratio: 2/3 !important; }
-          .phil-img-large { width: 100% !important; aspect-ratio: 3/4 !important; }
+          .phil-section {
+            padding: 4rem var(--page-x) 1rem;
+            min-height: auto;
+          }
+          .phil-grid {
+             grid-template-columns: 1fr 1.3fr !important;
+             gap: 1.5rem !important;
+             align-items: start !important;
+          }
+          .phil-text-col { display: contents; }
+          .phil-label { grid-column: 1 / -1; grid-row: 1; margin-bottom: 0.5rem !important; }
+          .phil-heading { grid-column: 1 / -1; grid-row: 2; max-width: 100% !important; margin-bottom: 2.5rem !important; }
+          .phil-img-small { grid-column: 1; grid-row: 3; width: 100% !important; margin: 0 !important; aspect-ratio: 3.1/4.8 !important; }
+          .phil-img-large { grid-column: 2; grid-row: 3; width: 100% !important; margin: 0 !important; aspect-ratio: 3/4.5 !important; }
+          .phil-body-wrapper { grid-column: 1 / -1; grid-row: 4; margin-top: 1.5rem !important; margin-bottom: 1.5rem !important; }
+          .phil-body-wrapper p { text-align: justify !important; text-align-last: left !important; }
+          .phil-cta { grid-column: 1 / -1; grid-row: 5; justify-self: center; }
         }
         .phil-cta:hover { background: #000 !important; }
       `}</style>

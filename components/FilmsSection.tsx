@@ -62,12 +62,21 @@ export default function FilmsSection({
             </h2>
           )}
           {body && (
-            <p className="mv-body" style={{ color: 'var(--ink-light)' }}>
+            <p className="mv-body mobile-justify">
               {body}
             </p>
           )}
         </div>
       )}
+
+      <style>{`
+        @media (max-width: 960px) {
+          .mobile-justify {
+            text-align: justify !important;
+            text-align-last: left !important;
+          }
+        }
+      `}</style>
 
       {/* ── Filters ── */}
       {showFilters && dynamicFilters.length > 1 && (

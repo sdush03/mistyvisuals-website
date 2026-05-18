@@ -134,10 +134,11 @@ export default function NavBar() {
             key={href} href={href}
             onClick={() => setMenuOpen(false)}
             style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize: '2.5rem',
+              fontFamily: 'var(--font-sans)',
+              fontSize: '1.125rem',
               fontWeight: 400, // Regular weight
-              letterSpacing: '0.06em',
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
               color: 'var(--ink)',
             }}
           >

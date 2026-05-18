@@ -114,7 +114,7 @@ export default function Footer() {
           flexWrap: 'wrap',
           gap: '0.75rem',
         }}>
-          <span style={tiny}>© {new Date().getFullYear()} Misty Visuals. All rights reserved.</span>
+          <span style={tiny}>© 2019 Misty Visuals. All rights reserved.</span>
           <span style={tiny}>Photography & Films · India & Worldwide</span>
         </div>
       </div>
