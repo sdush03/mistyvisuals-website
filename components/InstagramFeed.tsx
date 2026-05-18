@@ -14,17 +14,11 @@ export default function InstagramFeed() {
   }, [])
 
   useEffect(() => {
-    fetch('https://feeds.behold.so/7NrB8wJCEhLbccHr5z15')
+    fetch('/api/instagram')
       .then(res => res.json())
       .then(data => {
-        const postsArray = data.posts || data
-        if (!Array.isArray(postsArray)) return
-        const feed = postsArray.slice(0, 9).map((item: any) => ({
-          id: item.id,
-          url: item.permalink,
-          image: item.mediaType === 'VIDEO' && item.thumbnailUrl ? item.thumbnailUrl : item.mediaUrl
-        }))
-        setPosts(feed)
+        if (!Array.isArray(data)) return
+        setPosts(data)
       })
       .catch(err => console.error('Error fetching Instagram feed:', err))
   }, [])
