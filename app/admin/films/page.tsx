@@ -137,10 +137,10 @@ export default function AdminFilmsPage() {
   }
 
   const uploadThumb = async (filmId: number, file: File) => {
-    // Compress thumbnail client-side (max 800px wide)
+    // Compress thumbnail client-side (HD for 2-col grid + retina)
     let toUpload = file
     try {
-      toUpload = await compressImage(file, { maxWidth: 800, maxHeight: 600, quality: 0.85 })
+      toUpload = await compressImage(file, { maxWidth: 1920, maxHeight: 1080, quality: 0.85 })
     } catch { /* fall back to original */ }
     const form = new FormData()
     form.append('file', toUpload)
