@@ -8,14 +8,15 @@ interface Props { photos: StoryPhoto[], tabs?: string[] | null }
 export default function StoryGallery({ photos, tabs }: Props) {
   const [activeTab, setActiveTab] = useState('All')
   const [lb, setLb] = useState<number | null>(null)
-  const [cols, setCols] = useState(3)
+  const [cols, setCols] = useState(4)
   const [aspects, setAspects] = useState<Record<number, number>>({})
 
   useEffect(() => {
     const updateCols = () => {
       if (window.innerWidth <= 640) setCols(1)
       else if (window.innerWidth <= 1024) setCols(2)
-      else setCols(3)
+      else if (window.innerWidth <= 1280) setCols(3)
+      else setCols(4)
     }
     updateCols()
     window.addEventListener('resize', updateCols)
@@ -168,7 +169,7 @@ export default function StoryGallery({ photos, tabs }: Props) {
                     <img
                       src={photo.file_url_thumb || photo.file_url}
                       srcSet={`${photo.file_url_thumb || photo.file_url} 600w, ${photo.file_url} 1920w`}
-                      sizes="(max-width: 560px) 100vw, (max-width: 900px) 50vw, 33vw"
+                      sizes="(max-width: 560px) 100vw, (max-width: 900px) 50vw, 25vw"
                       alt=""
                       loading={globalIdx < 4 ? 'eager' : 'lazy'}
                       decoding="async"
