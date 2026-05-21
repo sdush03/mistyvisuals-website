@@ -60,23 +60,18 @@ export default function StoryGallery({ photos, tabs }: Props) {
   const prev = useCallback(() => setLb(i => i !== null && i > 0 ? i - 1 : i), [])
   const next = useCallback(() => setLb(i => i !== null && i < filteredPhotos.length - 1 ? i + 1 : i), [filteredPhotos.length])
 
-  // Deterministic layout engine for clean editorial asymmetry
-  const getPhotoLayout = (photo: StoryPhoto, index: number) => {
-    const isLandscape = aspects[photo.id] ? aspects[photo.id] > 1.1 : false
+  // Dynamically calculate balanced columns based on cropped image aspect ratios to prevent uneven heights and white spaces
+  const getBalancedColumns = () => {
+    const columns: typeof filteredPhotos[] = Array.from({ length: cols }, () => [])
+    const colHeights = Array(cols).fill(0)
 
-    // 1. Column Spans:
-    // If it's a landscape image and fits our pattern, let it span 2 columns!
-    // (Only on desktop/tablet since mobile is 1 column).
-    // Let's say: every 5th image, if it's landscape, it spans 2 columns.
-    const canSpan = cols > 1 && isLandscape && (index % 5 === 0)
-    const colSpan = canSpan ? 2 : 1
+    filteredPhotos.forEach((photo, index) => {
+      const isLandscape = aspects[photo.id] ? aspects[photo.id] > 1.1 : false
 
-    // 2. Aspect Ratio Crops:
-    let gridAspect = '2/3' // Default 2x3 portrait aspect ratio
-
-    if (colSpan === 1) {
+      // Determine aspect ratio for grid crop
+      let gridAspect = '2/3'
       if (isLandscape) {
-        gridAspect = '3/2' // Landscape single-column ratio
+        gridAspect = '3/2'
       } else {
         // Stagger portrait images dynamically using 2x3, 3x4, and 4:5 ratios
         const cycle = index % 3
@@ -84,13 +79,33 @@ export default function StoryGallery({ photos, tabs }: Props) {
         else if (cycle === 1) gridAspect = '3/4'
         else gridAspect = '4/5'
       }
-    } else {
-      // 2-column span landscape is standard 3/2 or wider
-      gridAspect = '3/2'
-    }
 
-    return { colSpan, gridAspect }
+      // Convert grid aspect string to numerical ratio for height contribution
+      const numAspect = isLandscape ? 1.5 : (gridAspect === '2/3' ? 2/3 : (gridAspect === '3/4' ? 3/4 : 4/5))
+      const heightContribution = 1 / numAspect
+
+      // Find the column with the shortest height
+      let shortestIdx = 0
+      let minHeight = colHeights[0]
+      for (let i = 1; i < cols; i++) {
+        if (colHeights[i] < minHeight) {
+          minHeight = colHeights[i]
+          shortestIdx = i
+        }
+      }
+
+      columns[shortestIdx].push({
+        ...photo,
+        _gridAspect: gridAspect
+      } as any)
+      
+      colHeights[shortestIdx] += heightContribution
+    })
+
+    return columns
   }
+
+  const columnsData = getBalancedColumns()
 
   if (!photos.length) return null
 
@@ -122,49 +137,52 @@ export default function StoryGallery({ photos, tabs }: Props) {
         </div>
       )}
 
-      {/* ── Masonry columns (CSS Grid with Dense Flow) ── */}
+      {/* ── Masonry columns (True Height-Balanced Flex Masonry) ── */}
       <div
         className="story-masonry"
         style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(${cols}, 1fr)`,
-          gridAutoFlow: 'dense',
+          display: 'flex',
           gap: '16px',
           padding: '16px var(--page-x) 32px',
           background: '#fff',
         }}
       >
-        {filteredPhotos.map((photo, globalIdx) => {
-          const layout = getPhotoLayout(photo, globalIdx)
+        {columnsData.map((colPhotos, colIdx) => {
           return (
-            <div
-              key={photo.id}
-              onClick={() => setLb(globalIdx)}
-              style={{
-                cursor: 'pointer',
-                overflow: 'hidden',
-                lineHeight: 0,
-                gridColumn: `span ${layout.colSpan}`,
-                aspectRatio: layout.gridAspect,
-                position: 'relative',
-              }}
-              className="gallery-item"
-            >
-              <img
-                src={photo.file_url_thumb || photo.file_url}
-                srcSet={`${photo.file_url_thumb || photo.file_url} 600w, ${photo.file_url} 1920w`}
-                sizes={layout.colSpan > 1 ? "(max-width: 768px) 100vw, 66vw" : "(max-width: 560px) 100vw, (max-width: 900px) 50vw, 33vw"}
-                alt=""
-                loading={globalIdx < 4 ? 'eager' : 'lazy'}
-                decoding="async"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                  background: photo.blur_data_url ? `url(${photo.blur_data_url}) no-repeat center/cover` : 'var(--linen-dark)',
-                }}
-              />
+            <div key={colIdx} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {colPhotos.map((photo: any) => {
+                const globalIdx = filteredPhotos.findIndex(p => p.id === photo.id)
+                return (
+                  <div
+                    key={photo.id}
+                    onClick={() => setLb(globalIdx)}
+                    style={{
+                      cursor: 'pointer',
+                      overflow: 'hidden',
+                      lineHeight: 0,
+                      aspectRatio: photo._gridAspect || '2/3',
+                      position: 'relative',
+                    }}
+                    className="gallery-item"
+                  >
+                    <img
+                      src={photo.file_url_thumb || photo.file_url}
+                      srcSet={`${photo.file_url_thumb || photo.file_url} 600w, ${photo.file_url} 1920w`}
+                      sizes="(max-width: 560px) 100vw, (max-width: 900px) 50vw, 33vw"
+                      alt=""
+                      loading={globalIdx < 4 ? 'eager' : 'lazy'}
+                      decoding="async"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        display: 'block',
+                        background: photo.blur_data_url ? `url(${photo.blur_data_url}) no-repeat center/cover` : 'var(--linen-dark)',
+                      }}
+                    />
+                  </div>
+                )
+              })}
             </div>
           )
         })}
