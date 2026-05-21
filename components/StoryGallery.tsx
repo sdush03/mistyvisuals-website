@@ -9,6 +9,7 @@ export default function StoryGallery({ photos, tabs }: Props) {
   const [activeTab, setActiveTab] = useState('All')
   const [lb, setLb] = useState<number | null>(null)
   const [cols, setCols] = useState(3)
+  const [aspects, setAspects] = useState<Record<number, number>>({})
 
   useEffect(() => {
     const updateCols = () => {
@@ -22,6 +23,21 @@ export default function StoryGallery({ photos, tabs }: Props) {
   }, [])
 
   const filteredPhotos = activeTab === 'All' ? photos : photos.filter(p => p.tab_name === activeTab)
+
+  // Track aspect ratios of images as they are loaded by the browser (very fast, layout shifts are minimal)
+  useEffect(() => {
+    filteredPhotos.forEach(photo => {
+      if (aspects[photo.id]) return
+      const img = new Image()
+      img.src = photo.file_url_thumb || photo.file_url
+      img.onload = () => {
+        setAspects(prev => {
+          if (prev[photo.id] === img.naturalWidth / img.naturalHeight) return prev
+          return { ...prev, [photo.id]: img.naturalWidth / img.naturalHeight }
+        })
+      }
+    })
+  }, [filteredPhotos, aspects])
 
   // Keyboard navigation
   useEffect(() => {
@@ -43,6 +59,34 @@ export default function StoryGallery({ photos, tabs }: Props) {
 
   const prev = useCallback(() => setLb(i => i !== null && i > 0 ? i - 1 : i), [])
   const next = useCallback(() => setLb(i => i !== null && i < filteredPhotos.length - 1 ? i + 1 : i), [filteredPhotos.length])
+
+  // Dynamically calculate balanced columns based on image aspect ratios to prevent uneven heights
+  const getBalancedColumns = () => {
+    const columns: typeof filteredPhotos[] = Array.from({ length: cols }, () => [])
+    const colHeights = Array(cols).fill(0)
+
+    filteredPhotos.forEach(photo => {
+      const aspect = aspects[photo.id] || 1.5 // Default to standard landscape aspect
+      const heightContribution = 1 / aspect   // Portrait photos are taller, so they contribute more height
+
+      // Find the column with the shortest height
+      let shortestIdx = 0
+      let minHeight = colHeights[0]
+      for (let i = 1; i < cols; i++) {
+        if (colHeights[i] < minHeight) {
+          minHeight = colHeights[i]
+          shortestIdx = i
+        }
+      }
+
+      columns[shortestIdx].push(photo)
+      colHeights[shortestIdx] += heightContribution
+    })
+
+    return columns
+  }
+
+  const columnsData = getBalancedColumns()
 
   if (!photos.length) return null
 
@@ -84,8 +128,7 @@ export default function StoryGallery({ photos, tabs }: Props) {
           background: '#fff',
         }}
       >
-        {Array.from({ length: cols }).map((_, colIdx) => {
-          const colPhotos = filteredPhotos.filter((_, i) => i % cols === colIdx);
+        {columnsData.map((colPhotos, colIdx) => {
           return (
             <div key={colIdx} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {colPhotos.map((photo) => {
