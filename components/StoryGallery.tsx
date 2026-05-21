@@ -60,33 +60,37 @@ export default function StoryGallery({ photos, tabs }: Props) {
   const prev = useCallback(() => setLb(i => i !== null && i > 0 ? i - 1 : i), [])
   const next = useCallback(() => setLb(i => i !== null && i < filteredPhotos.length - 1 ? i + 1 : i), [filteredPhotos.length])
 
-  // Dynamically calculate balanced columns based on image aspect ratios to prevent uneven heights
-  const getBalancedColumns = () => {
-    const columns: typeof filteredPhotos[] = Array.from({ length: cols }, () => [])
-    const colHeights = Array(cols).fill(0)
+  // Deterministic layout engine for clean editorial asymmetry
+  const getPhotoLayout = (photo: StoryPhoto, index: number) => {
+    const isLandscape = aspects[photo.id] ? aspects[photo.id] > 1.1 : false
 
-    filteredPhotos.forEach(photo => {
-      const aspect = aspects[photo.id] || 1.5 // Default to standard landscape aspect
-      const heightContribution = 1 / aspect   // Portrait photos are taller, so they contribute more height
+    // 1. Column Spans:
+    // If it's a landscape image and fits our pattern, let it span 2 columns!
+    // (Only on desktop/tablet since mobile is 1 column).
+    // Let's say: every 5th image, if it's landscape, it spans 2 columns.
+    const canSpan = cols > 1 && isLandscape && (index % 5 === 0)
+    const colSpan = canSpan ? 2 : 1
 
-      // Find the column with the shortest height
-      let shortestIdx = 0
-      let minHeight = colHeights[0]
-      for (let i = 1; i < cols; i++) {
-        if (colHeights[i] < minHeight) {
-          minHeight = colHeights[i]
-          shortestIdx = i
-        }
+    // 2. Aspect Ratio Crops:
+    let gridAspect = '2/3' // Default 2x3 portrait aspect ratio
+
+    if (colSpan === 1) {
+      if (isLandscape) {
+        gridAspect = '3/2' // Landscape single-column ratio
+      } else {
+        // Stagger portrait images dynamically using 2x3, 3x4, and 4:5 ratios
+        const cycle = index % 3
+        if (cycle === 0) gridAspect = '2/3'
+        else if (cycle === 1) gridAspect = '3/4'
+        else gridAspect = '4/5'
       }
+    } else {
+      // 2-column span landscape is standard 3/2 or wider
+      gridAspect = '3/2'
+    }
 
-      columns[shortestIdx].push(photo)
-      colHeights[shortestIdx] += heightContribution
-    })
-
-    return columns
+    return { colSpan, gridAspect }
   }
-
-  const columnsData = getBalancedColumns()
 
   if (!photos.length) return null
 
@@ -118,51 +122,51 @@ export default function StoryGallery({ photos, tabs }: Props) {
         </div>
       )}
 
-      {/* ── Masonry columns ── */}
+      {/* ── Masonry columns (CSS Grid with Dense Flow) ── */}
       <div
         className="story-masonry"
         style={{
-          display: 'flex',
+          display: 'grid',
+          gridTemplateColumns: `repeat(${cols}, 1fr)`,
+          gridAutoFlow: 'dense',
           gap: '16px',
           padding: '16px var(--page-x) 32px',
           background: '#fff',
         }}
       >
-        {columnsData.map((colPhotos, colIdx) => {
+        {filteredPhotos.map((photo, globalIdx) => {
+          const layout = getPhotoLayout(photo, globalIdx)
           return (
-            <div key={colIdx} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {colPhotos.map((photo) => {
-                const globalIdx = filteredPhotos.indexOf(photo);
-                return (
-                  <div
-                    key={photo.id}
-                    onClick={() => setLb(globalIdx)}
-                    style={{
-                      cursor: 'pointer',
-                      overflow: 'hidden',
-                      lineHeight: 0,
-                    }}
-                    className="gallery-item"
-                  >
-                    <img
-                      src={photo.file_url_thumb || photo.file_url}
-                      srcSet={`${photo.file_url_thumb || photo.file_url} 600w, ${photo.file_url} 1920w`}
-                      sizes="(max-width: 560px) 100vw, (max-width: 900px) 50vw, 33vw"
-                      alt=""
-                      loading={globalIdx < 4 ? 'eager' : 'lazy'}
-                      decoding="async"
-                      style={{
-                        width: '100%',
-                        height: 'auto',
-                        display: 'block',
-                        background: photo.blur_data_url ? `url(${photo.blur_data_url}) no-repeat center/cover` : 'var(--linen-dark)',
-                      }}
-                    />
-                  </div>
-                );
-              })}
+            <div
+              key={photo.id}
+              onClick={() => setLb(globalIdx)}
+              style={{
+                cursor: 'pointer',
+                overflow: 'hidden',
+                lineHeight: 0,
+                gridColumn: `span ${layout.colSpan}`,
+                aspectRatio: layout.gridAspect,
+                position: 'relative',
+              }}
+              className="gallery-item"
+            >
+              <img
+                src={photo.file_url_thumb || photo.file_url}
+                srcSet={`${photo.file_url_thumb || photo.file_url} 600w, ${photo.file_url} 1920w`}
+                sizes={layout.colSpan > 1 ? "(max-width: 768px) 100vw, 66vw" : "(max-width: 560px) 100vw, (max-width: 900px) 50vw, 33vw"}
+                alt=""
+                loading={globalIdx < 4 ? 'eager' : 'lazy'}
+                decoding="async"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                  background: photo.blur_data_url ? `url(${photo.blur_data_url}) no-repeat center/cover` : 'var(--linen-dark)',
+                }}
+              />
             </div>
-          );
+          )
         })}
       </div>
 
