@@ -142,7 +142,7 @@ export default async function FilmsPage() {
         </section>
 
         {films.length > 0 ? (
-          <FilmsSection films={films} heading="" showFilters={true} hideViewAll={true} columns={2} />
+          <FilmsSection films={films} heading="" showFilters={true} hideViewAll={true} columns={3} />
         ) : (
           <div style={{
             textAlign: 'center',

@@ -140,7 +140,7 @@ export default function AdminFilmsPage() {
     // Compress thumbnail client-side (HD for 2-col grid + retina)
     let toUpload = file
     try {
-      toUpload = await compressImage(file, { maxWidth: 1920, maxHeight: 1080, quality: 0.85 })
+      toUpload = await compressImage(file, { maxWidth: 1280, maxHeight: 720, quality: 0.85 })
     } catch { /* fall back to original */ }
     const form = new FormData()
     form.append('file', toUpload)
