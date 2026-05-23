@@ -16,6 +16,27 @@ export async function POST(request: NextRequest) {
                request.headers.get('x-real-ip') || 
                '127.0.0.1'
 
+    // Check if the IP belongs to the internal team or is a local loopback (fail-safe)
+    try {
+      const isLoopback = ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1' || ip === 'localhost';
+      if (isLoopback) {
+        // Local testing, return lightweight 204 No Content immediately
+        return new Response(null, { status: 204 })
+      }
+
+      const checkResult = await query(
+        'SELECT 1 FROM known_internal_ips WHERE ip = $1 LIMIT 1',
+        [ip]
+      )
+      if (checkResult.rowCount && checkResult.rowCount > 0) {
+        // It's a team member, return lightweight 204 No Content immediately
+        return new Response(null, { status: 204 })
+      }
+    } catch (dbErr) {
+      // Log the error but fail-safe and let tracking continue if DB check fails
+      console.error('Error verifying client IP in known_internal_ips:', dbErr)
+    }
+
     // 2. Parse User Agent details natively
     const ua = userAgent(request)
     const browser = ua.browser.name || 'Unknown Browser'
