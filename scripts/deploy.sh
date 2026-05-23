@@ -73,6 +73,29 @@ echo "[deploy] ═════════════════════�
 echo "[deploy] Pulling latest code..."
 git pull origin main
 
+# Load and inject database credentials into Next.js production environment variables
+OS_ENV="/var/www/mistyvisuals-os/backend/.env"
+if [ -f "$OS_ENV" ]; then
+  echo "[deploy] Injecting database credentials to Next.js production environment..."
+  DB_HOST=$(grep -E '^DB_HOST=' "$OS_ENV" | cut -d= -f2 | tr -d '\r"')
+  DB_PORT=$(grep -E '^DB_PORT=' "$OS_ENV" | cut -d= -f2 | tr -d '\r"')
+  DB_NAME=$(grep -E '^DB_NAME=' "$OS_ENV" | cut -d= -f2 | tr -d '\r"')
+  DB_USER=$(grep -E '^DB_USER=' "$OS_ENV" | cut -d= -f2 | tr -d '\r"')
+  DB_PASS=$(grep -E '^DB_PASSWORD=' "$OS_ENV" | cut -d= -f2 | tr -d '\r"')
+
+  # Write to the repository root where Next.js starts
+  cat <<EOF > "$REPO_ROOT/.env.production"
+DB_HOST=$DB_HOST
+DB_PORT=$DB_PORT
+DB_NAME=$DB_NAME
+DB_USER=$DB_USER
+DB_PASSWORD=$DB_PASS
+EOF
+  echo "[deploy] Next.js production environment variables configured successfully."
+else
+  echo "[deploy] ⚠ OS backend .env not found at $OS_ENV, skipping database env injection."
+fi
+
 NEW_HASH="$(git rev-parse HEAD)"
 
 if [[ "$PREV_HASH" == "$NEW_HASH" ]]; then
