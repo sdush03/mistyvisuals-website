@@ -11,6 +11,20 @@ const nextConfig: NextConfig = {
       { source: '/media/:path*', destination: `${INTERNAL_API}/media/:path*` },
     ]
   },
+  async redirects() {
+    return [
+      {
+        source: '/wa',
+        destination: '/?utm_source=whatsapp&utm_medium=chat',
+        permanent: false,
+      },
+      {
+        source: '/chat',
+        destination: '/?utm_source=whatsapp&utm_medium=chat',
+        permanent: false,
+      },
+    ]
+  },
   images: {
     remotePatterns: [
       { protocol: 'http',  hostname: 'localhost' },

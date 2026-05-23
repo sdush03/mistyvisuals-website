@@ -108,6 +108,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { label: "Let's Connect",   href: '/admin/inquiry?tab=films' },
       ]
     },
+    {
+      label: 'Analytics',
+      href: '/admin/analytics',
+    },
   ]
 
   return (

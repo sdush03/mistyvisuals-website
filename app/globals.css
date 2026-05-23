@@ -147,3 +147,156 @@ a { color: inherit; text-decoration: none; }
   outline: 1px solid var(--gold);
   outline-offset: 3px;
 }
+
+/* ─── Premium Admin panel styles (strictly scoped to admin pages) ─── */
+.admin-card {
+  background: #ffffff;
+  border: 1px solid #ece9e4;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.admin-card:hover {
+  border-color: #dcd7ce;
+  box-shadow: 0 4px 20px rgba(28, 26, 24, 0.02);
+}
+
+.admin-label {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8c867e;
+  display: block;
+  margin-bottom: 0.45rem;
+}
+
+.admin-input {
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  padding: 0.625rem 0.875rem;
+  background: #ffffff;
+  border: 1px solid #e5e1da;
+  border-radius: 8px;
+  color: #1c1a18;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-input:focus {
+  outline: none;
+  border-color: #9a7d52;
+  box-shadow: 0 0 0 2px rgba(154, 125, 82, 0.15);
+}
+
+.admin-input::placeholder {
+  color: #c0b9af;
+}
+
+.admin-btn {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.admin-btn-primary {
+  background: #1c1a18;
+  color: #ffffff;
+}
+
+.admin-btn-primary:hover:not(:disabled) {
+  background: #000000;
+}
+
+.admin-btn-primary:disabled {
+  background: #ddd8d0;
+  color: #8c867e;
+  cursor: not-allowed;
+}
+
+.admin-btn-secondary {
+  background: #ffffff;
+  color: #1c1a18;
+  border: 1px solid #e5e1da;
+}
+
+.admin-btn-secondary:hover:not(:disabled) {
+  border-color: #1c1a18;
+  background: #fcfbf9;
+}
+
+.admin-btn-danger {
+  background: #fff5f5;
+  color: #e53e3e;
+  border: 1px solid #fed7d7;
+}
+
+.admin-btn-danger:hover {
+  background: #e53e3e;
+  color: #ffffff;
+  border-color: #e53e3e;
+}
+
+.admin-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 26, 24, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 50;
+}
+
+.admin-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  max-width: 480px;
+  background: #ffffff;
+  box-shadow: -8px 0 32px rgba(28, 26, 24, 0.08);
+  border-left: 1px solid #ece9e4;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.admin-drawer-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #ece9e4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.admin-drawer-footer {
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid #ece9e4;
+  background: #fcfbf9;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+

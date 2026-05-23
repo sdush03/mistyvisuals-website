@@ -118,10 +118,10 @@ export default function FilmsSection({
           style={{
             display: 'grid',
             gridTemplateColumns: columns === 2 ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
-            gap: 'clamp(1rem, 2vw, 1.75rem)',
+            gap: 'clamp(1rem, 2vw, 2rem) clamp(1rem, 2vw, 2rem)',
           }}
         >
-          {filteredFilms.map(film => (
+          {filteredFilms.map((film, i) => (
           <article 
             key={film.id} 
             onClick={() => {
@@ -141,7 +141,7 @@ export default function FilmsSection({
                 <img
                   src={film.thumbnail_url}
                   alt={film.title}
-                  loading="lazy"
+                  loading={i < 6 ? 'eager' : 'lazy'}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               ) : (
@@ -174,11 +174,38 @@ export default function FilmsSection({
                 </div>
               )}
             </div>
-            {/* Caption */}
-            <p className="t-caption">{film.title.toUpperCase()}</p>
-            {film.location && (
-              <p className="t-caption" style={{ marginTop: '0.15rem', color: 'var(--border)' }}>{film.location.toUpperCase()}</p>
-            )}
+
+            {/* Caption below — Centered, matching StoriesGrid */}
+            <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
+              <h3 style={{
+                fontFamily: 'var(--font-sans)',
+                fontSize: '0.8125rem',
+                fontWeight: 600,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: 'var(--ink)',
+                marginBottom: '0.5rem',
+              }}>
+                {[film.title, film.location].filter(Boolean).join(' || ')}
+              </h3>
+              {film.subtitle && (
+                <p style={{
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: '0.75rem',
+                  fontWeight: 400,
+                  letterSpacing: '0.03em',
+                  lineHeight: '1.5',
+                  textTransform: 'none',
+                  color: 'var(--ink-light)',
+                  whiteSpace: 'pre-line',
+                  maxWidth: '480px',
+                  margin: '0.35rem auto 0',
+                  textAlign: 'justify',
+                }}>
+                  {film.subtitle}
+                </p>
+              )}
+            </div>
           </article>
         ))}
       </div>
