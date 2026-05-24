@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import NavBar from '@/components/NavBar'
+import ContactForm from '@/components/ContactForm'
 
 export const metadata: Metadata = {
   title: 'Enquire | Misty Visuals',
@@ -35,7 +36,7 @@ export default function ContactPage() {
             <p style={{
               fontFamily: 'var(--font-sans)',
               fontSize: '0.5rem',
-              fontWeight: 300,
+              fontWeight: 400,
               letterSpacing: '0.35em',
               textTransform: 'uppercase',
               color: 'var(--ink-light)',
@@ -77,10 +78,10 @@ export default function ContactPage() {
                 display: 'flex', justifyContent: 'space-between',
                 padding: '0.625rem 0', borderTop: '1px solid var(--border)',
               }}>
-                <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.5875rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ink-light)', fontWeight: 300 }}>
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.5875rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ink-light)', fontWeight: 400 }}>
                   {label}
                 </span>
-                <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.5875rem', color: 'var(--ink-mid)', fontWeight: 300, letterSpacing: '0.05em' }}>
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.5875rem', color: 'var(--ink-mid)', fontWeight: 400, letterSpacing: '0.05em' }}>
                   {val}
                 </span>
               </div>
@@ -94,101 +95,7 @@ export default function ContactPage() {
             flexDirection: 'column',
             justifyContent: 'center',
           }}>
-            <form
-              action={`mailto:hello@mistyvisuals.com`}
-              method="get"
-              style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
-            >
-              {/* Field helper */}
-              {([
-                ['Your Name', 'name', 'text', 'Priya & Arjun'],
-                ['Email Address', 'email', 'email', 'you@email.com'],
-                ['Phone', 'phone', 'tel', '+91 00000 00000'],
-                ['Wedding Date', 'date', 'date', ''],
-                ['Venue / City', 'venue', 'text', 'Udaipur, Rajasthan'],
-              ] as [string, string, string, string][]).map(([label, name, type, ph]) => (
-                <div key={name} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                  <label style={{
-                    fontFamily: 'var(--font-sans)',
-                    fontSize: '0.5rem',
-                    fontWeight: 300,
-                    letterSpacing: '0.3em',
-                    textTransform: 'uppercase',
-                    color: 'var(--ink-light)',
-                  }}>
-                    {label}
-                  </label>
-                  <input
-                    type={type} name={name} placeholder={ph}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      borderBottom: '1px solid var(--border)',
-                      padding: '0.5rem 0',
-                      fontFamily: 'var(--font-sans)',
-                      fontSize: '0.9375rem',
-                      fontWeight: 300,
-                      color: 'var(--ink)',
-                      outline: 'none',
-                      width: '100%',
-                      transition: 'border-color 0.25s ease',
-                    }}
-                    className="contact-input"
-                  />
-                </div>
-              ))}
-
-              {/* Message */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                <label style={{
-                  fontFamily: 'var(--font-sans)',
-                  fontSize: '0.5rem', fontWeight: 300,
-                  letterSpacing: '0.3em', textTransform: 'uppercase',
-                  color: 'var(--ink-light)',
-                }}>
-                  Your Story
-                </label>
-                <textarea
-                  name="message" rows={3}
-                  placeholder="Tell us about your wedding…"
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    borderBottom: '1px solid var(--border)',
-                    padding: '0.5rem 0',
-                    fontFamily: 'var(--font-sans)',
-                    fontSize: '0.9375rem',
-                    fontWeight: 300,
-                    color: 'var(--ink)',
-                    outline: 'none',
-                    resize: 'none',
-                    width: '100%',
-                    transition: 'border-color 0.25s ease',
-                  }}
-                  className="contact-input"
-                />
-              </div>
-
-              <button type="submit" style={{
-                marginTop: '0.5rem',
-                alignSelf: 'flex-start',
-                fontFamily: 'var(--font-sans)',
-                fontSize: '0.5875rem',
-                fontWeight: 300,
-                letterSpacing: '0.28em',
-                textTransform: 'uppercase',
-                color: 'var(--ink)',
-                background: 'none',
-                border: '1px solid var(--ink)',
-                padding: '0.875rem 2.25rem',
-                cursor: 'pointer',
-                transition: 'background 0.3s ease, color 0.3s ease',
-              }}
-                className="contact-submit"
-              >
-                Send Inquiry
-              </button>
-            </form>
+            <ContactForm />
           </div>
         </div>
       </main>
