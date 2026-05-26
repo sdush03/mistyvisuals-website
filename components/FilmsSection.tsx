@@ -158,8 +158,6 @@ export default function FilmsSection({
                 <div style={{
                   position: 'absolute', inset: 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: 'rgba(0,0,0,0.15)',
-                  transition: 'background 0.4s',
                   pointerEvents: 'none',
                   zIndex: 3
                 }} className="play-overlay">
@@ -170,6 +168,7 @@ export default function FilmsSection({
                     border: '1px solid rgba(255,255,255,0.35)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     zIndex: 4,
+                    filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.45))',
                     transition: 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)',
                   }} className="play-circle">
                     <svg width="12" height="14" viewBox="0 0 14 16" className="play-triangle" style={{ marginLeft: '2px' }}>

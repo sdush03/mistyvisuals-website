@@ -207,8 +207,6 @@ export default function StoryGallery({ photos, tabs, films = [], reels = [] }: P
                               <div style={{
                                 position: 'absolute', inset: 0,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                background: 'rgba(0,0,0,0.15)',
-                                transition: 'background 0.4s',
                                 zIndex: 3
                               }} className="play-overlay">
                                 <div style={{
@@ -218,6 +216,7 @@ export default function StoryGallery({ photos, tabs, films = [], reels = [] }: P
                                   border: '1px solid rgba(255,255,255,0.35)',
                                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                                   zIndex: 4,
+                                  filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.45))',
                                   transition: 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)',
                                 }} className="play-circle">
                                   <svg width="14" height="16" viewBox="0 0 14 16" className="play-triangle" style={{ marginLeft: '3px' }}>
@@ -329,8 +328,6 @@ export default function StoryGallery({ photos, tabs, films = [], reels = [] }: P
                             <div style={{
                               position: 'absolute', inset: 0,
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              background: 'rgba(0,0,0,0.1)',
-                              transition: 'background 0.4s',
                               zIndex: 3
                             }} className="play-overlay">
                               <div style={{
@@ -340,6 +337,7 @@ export default function StoryGallery({ photos, tabs, films = [], reels = [] }: P
                                 border: '1px solid rgba(255,255,255,0.35)',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 zIndex: 4,
+                                filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.45))',
                                 transition: 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)',
                               }} className="play-circle">
                                 <svg width="10" height="12" viewBox="0 0 10 12" className="play-triangle" style={{ marginLeft: '1px' }}>
