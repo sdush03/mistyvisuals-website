@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Misty Visuals — Play Buttons & Hover Effects Playground</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0806;
+      --card-bg: #13100d;
+      --accent: #d4af37; /* Cinematic Gold */
+      --text: #f5f3f0;
+      --text-muted: #a39e97;
+      --border: rgba(212, 175, 55, 0.15);
+      --font-sans: 'Outfit', sans-serif;
+      --font-serif: 'Playfair Display', serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      padding: 4rem 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    header {
+      text-align: center;
+      max-width: 800px;
+      margin-bottom: 3rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-weight: 400;
+      font-size: 3rem;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #fff 30%, #d4af37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      line-height: 1.6;
+      font-weight: 300;
+    }
+
+    /* --- Tab Navigation --- */
+    .tab-nav {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 3.5rem;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 0.5rem;
+      border-radius: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 0.75rem 2rem;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .tab-btn.active {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .tab-content {
+      display: none;
+      max-width: 1200px;
+      width: 100%;
+      animation: fadeIn 0.5s ease forwards;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 3rem;
+      width: 100%;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .demo-card {
+      background: var(--card-bg);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 20px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      transition: border-color 0.3s, transform 0.3s;
+    }
+
+    .demo-card:hover {
+      border-color: rgba(212, 175, 55, 0.15);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .badge {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      background: rgba(212, 175, 55, 0.1);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      padding: 0.35rem 0.75rem;
+      border-radius: 30px;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #fff;
+    }
+
+    .card-desc {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 300;
+      line-height: 1.5;
+    }
+
+    /* --- Visual Container & Thumb --- */
+    .thumb-wrapper {
+      position: relative;
+      aspect-ratio: 16/9;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      background: #1a1613;
+    }
+
+    .thumb-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* Shared Pulse ring style for play buttons */
+    .pulse-outer-ring {
+      position: absolute;
+      width: 5.5rem;
+      height: 5.5rem;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      animation: breathing-pulse 3s infinite ease-in-out;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .pulse-outer-ring.delay {
+      animation-delay: 1.5s;
+    }
+
+    @keyframes breathing-pulse {
+      0% {
+        transform: scale(0.7);
+        opacity: 0.85;
+      }
+      50% {
+        opacity: 0.25;
+      }
+      100% {
+        transform: scale(1.15);
+        opacity: 0;
+      }
+    }
+
+
+    /* ==========================================================================
+       SECTION 1: PLAY BUTTON DESIGNS
+       ========================================================================== */
+    
+    /* Option 1: Modern Cinematic Ring */
+    .opt1-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.4s ease;
+    }
+
+    .opt1-circle {
+      width: 4rem;
+      height: 4rem;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background: rgba(255, 255, 255, 0.0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), 
+                  background-color 0.4s ease, 
+                  border-color 0.4s ease,
+                  backdrop-filter 0.4s ease,
+                  box-shadow 0.4s ease;
+    }
+
+    .opt1-circle svg {
+      width: 14px;
+      height: 16px;
+      fill: #fff;
+      margin-left: 3px;
+      transition: transform 0.4s ease, fill 0.4s ease;
+    }
+
+    .thumb-wrapper.opt1:hover .opt1-img { transform: scale(1.05); }
+    .thumb-wrapper.opt1:hover .opt1-overlay { background: rgba(0, 0, 0, 0.3); }
+    .thumb-wrapper.opt1:hover .opt1-circle {
+      transform: scale(1.15);
+      border-color: rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+    }
+    .thumb-wrapper.opt1:hover .opt1-circle svg { fill: var(--accent); }
+
+    /* Option 2: Editorial Streaming Pill */
+    .opt2-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.05) 50%);
+      display: flex;
+      align-items: flex-end;
+      padding: 1.25rem;
+      transition: background 0.4s ease;
+    }
+
+    .opt2-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 0.6rem 1.2rem;
+      border-radius: 40px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #fff;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.3s, border-color 0.3s;
+    }
+
+    .opt2-pill svg { width: 8px; height: 10px; fill: #fff; }
+    .thumb-wrapper.opt2:hover .opt2-img { transform: scale(1.04); }
+    .thumb-wrapper.opt2:hover .opt2-overlay { background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.1) 60%); }
+    .thumb-wrapper.opt2:hover .opt2-pill {
+      transform: translateY(-4px);
+      background: #fff;
+      color: #000;
+      border-color: #fff;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+    }
+    .thumb-wrapper.opt2:hover .opt2-pill svg { fill: #000; }
+
+    /* Option 3: Breathing Pulse Glow */
+    .opt3-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.4s ease;
+    }
+
+    .opt3-circle-outer {
+      position: relative;
+      width: 5.5rem;
+      height: 5.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .opt3-circle-inner {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 50%;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.4s;
+    }
+
+    .opt3-circle-inner svg { width: 11px; height: 13px; fill: var(--bg); margin-left: 2px; }
+    .thumb-wrapper.opt3:hover .opt3-img { transform: scale(1.05); }
+    .thumb-wrapper.opt3:hover .opt3-circle-inner {
+      transform: scale(1.15);
+      background: var(--accent);
+      box-shadow: 0 15px 30px rgba(212, 175, 55, 0.4);
+    }
+    .thumb-wrapper.opt3:hover .opt3-circle-inner svg { fill: #fff; }
+
+    /* Option 4: Slide-Up Cinematic Details */
+    .opt4-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.0);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 1.5rem;
+      transition: background-color 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .opt4-content {
+      opacity: 0;
+      transform: translateY(15px);
+      transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .opt4-flex { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+    .opt4-play-btn { width: 2.2rem; height: 2.2rem; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; }
+    .opt4-play-btn svg { width: 8px; height: 10px; fill: #000; margin-left: 1px; }
+    .opt4-label { font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; color: #fff; }
+    .thumb-wrapper.opt4:hover .opt4-img { transform: scale(1.06); }
+    .thumb-wrapper.opt4:hover .opt4-overlay { background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.1) 80%); }
+    .thumb-wrapper.opt4:hover .opt4-content { opacity: 1; transform: translateY(0); }
+
+
+    /* ==========================================================================
+       SECTION 2: HOVER EFFECTS
+       ========================================================================== */
+
+    /* Option A: Live Video Preview Loop (YouTube backed!) */
+    .video-container {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      z-index: 1;
+      pointer-events: none;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .video-container iframe {
+      width: 100%;
+      height: 100%;
+      transform: scale(1.15); /* Slight upscale to hide any YouTube player borders */
+    }
+
+    /* Hybrid Play circle style for the hover section */
+    .hybrid-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.15);
+      z-index: 3;
+      transition: background 0.4s, opacity 0.4s;
+    }
+
+    .hybrid-circle {
+      width: 4rem;
+      height: 4rem;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 4;
+      transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .hybrid-circle svg {
+      width: 12px;
+      height: 14px;
+      fill: #fff;
+      margin-left: 2px;
+      transition: fill 0.4s;
+    }
+
+    /* Option A Hover triggers */
+    .thumb-wrapper.hover-a:hover .hybrid-overlay {
+      background: rgba(0,0,0,0.25);
+    }
+
+    .thumb-wrapper.hover-a:hover .hybrid-circle {
+      transform: scale(1.12);
+      border-color: rgba(255,255,255,0.7);
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+    }
+    .thumb-wrapper.hover-a:hover .hybrid-circle svg {
+      fill: var(--accent);
+    }
+
+
+    /* Option B: Spotlight Glaze (Angled Glass Reflection Sheen) */
+    .glaze-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        110deg,
+        rgba(255, 255, 255, 0) 20%,
+        rgba(255, 255, 255, 0.05) 25%,
+        rgba(255, 255, 255, 0.18) 30%,
+        rgba(255, 255, 255, 0.05) 35%,
+        rgba(255, 255, 255, 0) 40%
+      );
+      background-size: 300% 100%;
+      background-position: 120% 0;
+      z-index: 2;
+      transition: background-position 0s;
+    }
+
+    /* Option B Hover triggers */
+    .thumb-wrapper.hover-b:hover .glaze-overlay {
+      background-position: -20% 0;
+      transition: background-position 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    
+    .thumb-wrapper.hover-b:hover .opt1-img {
+      transform: scale(1.04);
+    }
+
+
+    /* Option C: Ambient Gold Glow & Lift */
+    .demo-card.hover-c-card {
+      transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* Option C Hover triggers */
+    .demo-card.hover-c-card:hover {
+      transform: translateY(-10px);
+      border-color: rgba(212, 175, 55, 0.35);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.5), 
+                  0 0 40px rgba(212, 175, 55, 0.12);
+    }
+
+
+    /* Option D: Drawing Underlines & text shifts */
+    .underline-title {
+      position: relative;
+      display: inline-block;
+      font-size: 1rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #fff;
+      transition: color 0.3s;
+    }
+
+    .underline-title::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -4px;
+      width: 100%;
+      height: 1px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .meta-text {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      transition: color 0.3s, transform 0.3s;
+    }
+
+    /* Option D Hover triggers */
+    .demo-card.hover-d-card:hover .underline-title {
+      color: var(--accent);
+    }
+    
+    .demo-card.hover-d-card:hover .underline-title::after {
+      transform: scaleX(1);
+    }
+
+    .demo-card.hover-d-card:hover .meta-text {
+      color: #fff;
+      transform: translateX(4px);
+    }
+
+
+    /* --- Fade in Animation --- */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Cinematic Interactions Playground</h1>
+    <p class="subtitle">Switch between play buttons and advanced hover effects to view how they bring your portfolios to life with interactive micro-animations.</p>
+  </header>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('buttons', this)">Play Buttons</button>
+    <button class="tab-btn" onclick="switchTab('hovers', this)">Card Hover Effects</button>
+  </div>
+
+  <!-- ==========================================
+       TAB 1: PLAY BUTTONS
+       ========================================== -->
+  <div id="tab-buttons" class="tab-content active">
+    <main class="grid">
+      <!-- OPTION 1 -->
+      <div class="demo-card">
+        <div class="card-header">
+          <h3 class="card-title">Option 1: Modern Cinematic Ring</h3>
+          <span class="badge">Clean & Glassy</span>
+        </div>
+        <div class="thumb-wrapper opt1">
+          <img class="thumb-img opt1-img" src="/philosophy-detail.jpg" alt="Option 1">
+          <div class="opt1-overlay">
+            <div class="opt1-circle">
+              <svg viewBox="0 0 14 16">
+                <path d="M0 0v16l14-8z"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <p class="card-desc">An ultra-clean minimalist white circle border that expands and activates a thick glassmorphic backdrop filter blur on hover, changing the play triangle into gold.</p>
+      </div>
+
+      <!-- OPTION 2 -->
+      <div class="demo-card">
+        <div class="card-header">
+          <h3 class="card-title">Option 2: Editorial Streaming Pill</h3>
+          <span class="badge">Mubi Style</span>
+        </div>
+        <div class="thumb-wrapper opt2">
+          <img class="thumb-img opt2-img" src="/philosophy-detail.jpg" alt="Option 2">
+          <div class="opt2-overlay">
+            <div class="opt2-pill">
+              <svg viewBox="0 0 10 12">
+                <path d="M0 0v12l10-6z" />
+              </svg>
+              Play Film
+            </div>
+          </div>
+        </div>
+        <p class="card-desc">Displaces the play button to the bottom-left as an elegant, pill-shaped glass badge. On hover, the pill lifts up and morphs into pure solid white with high-contrast text.</p>
+      </div>
+
+      <!-- OPTION 3 -->
+      <div class="demo-card">
+        <div class="card-header">
+          <h3 class="card-title">Option 3: Breathing Pulse Glow</h3>
+          <span class="badge">Interactive Pulse</span>
+        </div>
+        <div class="thumb-wrapper opt3">
+          <img class="thumb-img opt3-img" src="/philosophy-detail.jpg" alt="Option 3">
+          <div class="opt3-overlay">
+            <div class="opt3-circle-outer">
+              <div class="pulse-outer-ring"></div>
+              <div class="pulse-outer-ring delay"></div>
+              <div class="opt3-circle-inner">
+                <svg viewBox="0 0 10 12">
+                  <path d="M0 0v12l10-6z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="card-desc">Concentric circular ripples that slowly breathe in the background. On hover, the waves accelerate and the center button morphs into a vibrant gold state with a matching drop shadow.</p>
+      </div>
+
+      <!-- OPTION 4 -->
+      <div class="demo-card">
+        <div class="card-header">
+          <h3 class="card-title">Option 4: Slide-Up Cinematic Details</h3>
+          <span class="badge">Vimeo Style</span>
+        </div>
+        <div class="thumb-wrapper opt4">
+          <img class="thumb-img opt4-img" src="/philosophy-detail.jpg" alt="Option 4">
+          <div class="opt4-overlay">
+            <div class="opt4-content">
+              <div class="opt4-flex">
+                <div class="opt4-play-btn">
+                  <svg viewBox="0 0 10 12">
+                    <path d="M0 0v12l10-6z" />
+                  </svg>
+                </div>
+                <span class="opt4-label">Play Video</span>
+              </div>
+              <p style="font-size:0.6875rem; color:rgba(255,255,255,0.6); margin-left:3rem;">Runtime 4:28 • Spread</p>
+            </div>
+          </div>
+        </div>
+        <p class="card-desc">Keeps the thumbnail completely clean and uncluttered at rest. On hover, a cinematic gradient vignette fades in from the bottom, sliding up the title, metadata, and play badge.</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- ==========================================
+       TAB 2: HOVER EFFECTS
+       ========================================== -->
+  <div id="tab-hovers" class="tab-content">
+    <main class="grid">
+      <!-- OPTION A -->
+      <div class="demo-card">
+        <div class="card-header">
+          <h3 class="card-title">Option A: Live Video Preview</h3>
+          <span class="badge">YouTube Hover</span>
+        </div>
+        <div class="thumb-wrapper hover-a" 
+             onmouseenter="playYoutubePreview(this, 'E68HqwVNBno')" 
+             onmouseleave="pauseYoutubePreview(this)">
+          
+          <img class="thumb-img opt1-img" src="/philosophy-detail.jpg" alt="Option A">
+          
+          <!-- Iframe will be injected here dynamically -->
+          <div class="video-container" id="yt-preview-container"></div>
+
+          <!-- Pulsing Cinematic Ring overlay -->
+          <div class="hybrid-overlay">
+            <div class="pulse-outer-ring"></div>
+            <div class="pulse-outer-ring delay"></div>
+            <div class="hybrid-circle">
+              <svg viewBox="0 0 14 16">
+                <path d="M0 0v16l14-8z"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <p class="card-desc">Hover over this card to watch the thumbnail smoothly fade out, and the custom cinematic YouTube clip (ID: E68HqwVNBno) start playing automatically behind your play button overlay!</p>
+      </div>
+
+      <!-- OPTION B -->
+      <div class="demo-card">
+        <div class="card-header">
+          <h3 class="card-title">Option B: Spotlight Glass Glaze</h3>
+          <span class="badge">Spotlight Glare</span>
+        </div>
+        <div class="thumb-wrapper hover-b">
+          <img class="thumb-img opt1-img" src="/philosophy-detail.jpg" alt="Option B">
+          
+          <!-- Glare sheen gradient overlay -->
+          <div class="glaze-overlay"></div>
+
+          <div class="opt1-overlay">
+            <div class="opt1-circle">
+              <svg viewBox="0 0 14 16">
+                <path d="M0 0v16l14-8z"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <p class="card-desc">Hover to trigger a sleek white lighting sheen sweep that angles across the card's face, simulating light reflecting off a premium high-gloss glass plate.</p>
+      </div>
+
+      <!-- OPTION C -->
+      <div class="demo-card hover-c-card">
+        <div class="card-header">
+          <h3 class="card-title">Option C: Ambient Gold Glow & Lift</h3>
+          <span class="badge">Tactile Depth</span>
+        </div>
+        <div class="thumb-wrapper opt1">
+          <img class="thumb-img opt1-img" src="/philosophy-detail.jpg" alt="Option C">
+          <div class="opt1-overlay">
+            <div class="opt1-circle">
+              <svg viewBox="0 0 14 16">
+                <path d="M0 0v16l14-8z"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <p class="card-desc">Hovering elevates the card upwards by 10px and casts a soft, highly diffused warm golden drop shadow behind it, making it feel physically separated from the dark page.</p>
+      </div>
+
+      <!-- OPTION D -->
+      <div class="demo-card hover-d-card">
+        <div class="card-header">
+          <h3 class="card-title">Option D: Editorial Underline Draw</h3>
+          <span class="badge">Editorial Shift</span>
+        </div>
+        <div class="thumb-wrapper opt1">
+          <img class="thumb-img opt1-img" src="/philosophy-detail.jpg" alt="Option D">
+          <div class="opt1-overlay">
+            <div class="opt1-circle">
+              <svg viewBox="0 0 14 16">
+                <path d="M0 0v16l14-8z"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h4 class="underline-title">Rohan & Rhea || Lake Como, Italy</h4>
+          <p class="meta-text">A gorgeous cinematic celebration under Italian sunset gold.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function switchTab(tabId, btn) {
+      // Switch buttons
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      // Switch contents
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById('tab-' + tabId).classList.add('active');
+    }
+
+    function playYoutubePreview(wrapper, videoId) {
+      const container = wrapper.querySelector('.video-container');
+      if (container) {
+        // Inject YouTube iframe with autoplay, mute, loop, and no controls
+        container.innerHTML = `
+          <iframe 
+            src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&playsinline=1"
+            frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            style="width: 100%; height: 100%; pointer-events: none; transform: scale(1.22); transition: opacity 0.5s ease;"
+          ></iframe>
+        `;
+        // Delay a tiny bit to trigger fade-in transition
+        setTimeout(() => {
+          container.style.opacity = 1;
+        }, 50);
+      }
+    }
+
+    function pauseYoutubePreview(wrapper) {
+      const container = wrapper.querySelector('.video-container');
+      if (container) {
+        container.style.opacity = 0;
+        // Wait for fadeout animation before removing iframe to prevent jarring flash
+        setTimeout(() => {
+          container.innerHTML = '';
+        }, 400);
+      }
+    }
+  </script>
+
+</body>
+</html>

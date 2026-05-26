@@ -32,19 +32,29 @@ export default function AdminStoryEditorPage() {
   const [newCat, setNewCat] = useState('')
   const [allCategories, setAllCategories] = useState<string[]>([])
   const [allStories, setAllStories] = useState<any[]>([])
+  const [linkedFilms, setLinkedFilms] = useState<number[]>([])
+  const [allFilms, setAllFilms] = useState<any[]>([])
+  const [linkedReels, setLinkedReels] = useState<number[]>([])
+  const [allReels, setAllReels] = useState<any[]>([])
 
   const PREDEFINED_CATEGORIES = ['Destination', 'Intimate', 'Night', 'Pre-Wedding']
 
   useEffect(() => {
     Promise.all([
       apiFetch(`/api/website/admin/stories/${id}`).then(r => r.json()),
-      apiFetch('/api/website/admin/stories').then(r => r.json())
-    ]).then(([storyData, allStoriesData]) => {
+      apiFetch('/api/website/admin/stories').then(r => r.json()),
+      apiFetch('/api/website/admin/films').then(r => r.json()),
+      apiFetch('/api/website/admin/reels').then(r => r.json())
+    ]).then(([storyData, allStoriesData, allFilmsData, allReelsData]) => {
       if (storyData.date) storyData.date = new Date(storyData.date).toISOString().split('T')[0]
       setStory(storyData)
       setInitialStory(JSON.parse(JSON.stringify(storyData))) // deep clone
       setPhotos((storyData.photos || []).sort((a: Photo, b: Photo) => a.display_order - b.display_order))
       setTabs(storyData.tabs || [])
+      setLinkedFilms((storyData.films || []).map((f: any) => f.id))
+      setLinkedReels((storyData.reels || []).map((r: any) => r.id))
+      setAllFilms(allFilmsData || [])
+      setAllReels(allReelsData || [])
       
       const cats = new Set<string>()
       allStoriesData.forEach((s: any) => {
@@ -68,11 +78,18 @@ export default function AdminStoryEditorPage() {
         category: story.category, is_published: story.is_published,
         is_featured: story.is_featured,
         tabs: tabs,
+        film_ids: linkedFilms,
+        reel_ids: linkedReels,
       }),
     })
     
     if (res.ok) {
-      setInitialStory(JSON.parse(JSON.stringify({ ...story, tabs }))) // Sync dirty state
+      setInitialStory(JSON.parse(JSON.stringify({ 
+        ...story, 
+        tabs, 
+        films: (story.films || []).filter((f: any) => linkedFilms.includes(f.id)),
+        reels: (story.reels || []).filter((r: any) => linkedReels.includes(r.id))
+      }))) // Sync dirty state
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     } else {
@@ -216,7 +233,9 @@ export default function AdminStoryEditorPage() {
     story.category !== initialStory.category ||
     story.is_published !== initialStory.is_published ||
     story.is_featured !== initialStory.is_featured ||
-    JSON.stringify(tabs) !== JSON.stringify(initialStory.tabs || [])
+    JSON.stringify(tabs) !== JSON.stringify(initialStory.tabs || []) ||
+    JSON.stringify(linkedFilms.sort()) !== JSON.stringify((initialStory.films || []).map((f: any) => f.id).sort()) ||
+    JSON.stringify(linkedReels.sort()) !== JSON.stringify((initialStory.reels || []).map((r: any) => r.id).sort())
   )
 
   if (!story) return <p style={{ color: '#c0b9af', fontSize: '0.875rem' }}>Loading editorial details…</p>
@@ -544,6 +563,118 @@ export default function AdminStoryEditorPage() {
               </div>
             )
           })}
+        </div>
+      </div>
+
+      {/* Cinematic Video Connections Section */}
+      <div className="admin-card" style={{ marginBottom: '2.5rem' }}>
+        <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.35rem', fontWeight: 400, color: '#1c1a18', marginBottom: '0.25rem' }}>Cinema Tab Settings</h2>
+        <p style={{ fontSize: '0.75rem', color: '#8c867e', marginBottom: '1.5rem' }}>Link published widescreen films and vertical reels from your library to display them in this story's dedicated "Cinema" tab.</p>
+        
+        <div>
+          {/* Widescreen Films */}
+          <div style={{ marginBottom: '1.5rem' }}>
+            <h3 style={{ fontSize: '0.8125rem', fontFamily: 'var(--font-sans)', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#4a4540', borderBottom: '1px solid #ece9e4', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
+              Widescreen Feature Films (Max 2 recommended)
+            </h3>
+            {allFilms.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.75rem' }}>
+                {allFilms.filter(f => f.category?.toLowerCase() !== 'reel').map(film => {
+                  const isLinked = linkedFilms.includes(film.id)
+                  return (
+                    <div 
+                      key={film.id}
+                      onClick={() => {
+                        setLinkedFilms(prev => 
+                          isLinked ? prev.filter(id => id !== film.id) : [...prev, film.id]
+                        )
+                      }}
+                      style={{
+                        padding: '0.875rem 1.25rem',
+                        background: isLinked ? '#f7f6f4' : '#fff',
+                        border: isLinked ? '1px solid #9a7d52' : '1px solid #e5e1da',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <div>
+                        <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1c1a18', margin: '0 0 0.15rem 0' }}>{film.title}</p>
+                        <p style={{ fontSize: '0.7rem', color: '#8c867e', margin: 0 }}>{film.location || 'No Location'} • {film.year || 'No Year'}</p>
+                      </div>
+                      <div style={{
+                        width: '18px', height: '18px', border: '1px solid #c0b9af', borderRadius: '4px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: isLinked ? '#9a7d52' : '#fff', borderColor: isLinked ? '#9a7d52' : '#c0b9af',
+                      }}>
+                        {isLinked && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="4"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <p style={{ fontSize: '0.75rem', color: '#b0a99e', fontStyle: 'italic' }}>No widescreen films found. Upload them under "Films" first.</p>
+            )}
+          </div>
+
+          {/* Vertical Reels */}
+          <div>
+            <h3 style={{ fontSize: '0.8125rem', fontFamily: 'var(--font-sans)', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#4a4540', borderBottom: '1px solid #ece9e4', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
+              Vertical Reels & Stories (Max 4 recommended)
+            </h3>
+            {allReels.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.75rem' }}>
+                {allReels.map(reel => {
+                  const isLinked = linkedReels.includes(reel.id)
+                  return (
+                    <div 
+                      key={reel.id}
+                      onClick={() => {
+                        setLinkedReels(prev => 
+                          isLinked ? prev.filter(id => id !== reel.id) : [...prev, reel.id]
+                        )
+                      }}
+                      style={{
+                        padding: '0.875rem 1.25rem',
+                        background: isLinked ? '#f7f6f4' : '#fff',
+                        border: isLinked ? '1px solid #9a7d52' : '1px solid #e5e1da',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                        {/* Portrait thumbnail mini-preview */}
+                        <div style={{ width: '20px', aspectRatio: '9/16', background: '#eee', border: '1px solid #ddd', borderRadius: '2px', overflow: 'hidden', flexShrink: 0 }}>
+                          {reel.thumbnail_url && <img src={reel.thumbnail_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                        </div>
+                        <div>
+                          <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1c1a18', margin: '0 0 0.15rem 0' }}>{reel.title}</p>
+                          <p style={{ fontSize: '0.7rem', color: '#9a7d52', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 500, margin: 0 }}>Vertical Reel</p>
+                        </div>
+                      </div>
+                      <div style={{
+                        width: '18px', height: '18px', border: '1px solid #c0b9af', borderRadius: '4px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: isLinked ? '#9a7d52' : '#fff', borderColor: isLinked ? '#9a7d52' : '#c0b9af',
+                      }}>
+                        {isLinked && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="4"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <p style={{ fontSize: '0.75rem', color: '#b0a99e', fontStyle: 'italic' }}>No vertical reels found. Upload them under the new "Reels" section first.</p>
+            )}
+          </div>
         </div>
       </div>
 

@@ -20,7 +20,7 @@ export async function fetchStories(): Promise<Story[]> {
   return res.json()
 }
 
-export async function fetchStory(slug: string): Promise<Story & { photos: import('./types').StoryPhoto[] }> {
+export async function fetchStory(slug: string): Promise<Story & { photos: import('./types').StoryPhoto[], films: import('./types').Film[], reels: import('./types').Reel[] }> {
   const res = await fetch(`${API_BASE}/api/website/stories/${slug}`, nextOpts())
   if (!res.ok) throw new Error('Story not found')
   return res.json()

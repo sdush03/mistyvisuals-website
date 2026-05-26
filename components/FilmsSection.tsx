@@ -151,26 +151,31 @@ export default function FilmsSection({
                   </svg>
                 </div>
               )}
-              {/* Play icon — always visible, scales on hover */}
+              {/* Option B Spotlight Glass Glaze */}
+              <div className="glaze-overlay"></div>
+              {/* Glassmorphic Play Badge */}
               {film.youtube_video_id && (
                 <div style={{
                   position: 'absolute', inset: 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'rgba(0,0,0,0.15)',
+                  transition: 'background 0.4s',
                   pointerEvents: 'none',
-                }} className="film-play-wrap">
-                  <svg
-                    className="film-play-icon"
-                    width="36" height="40"
-                    viewBox="0 0 24 28"
-                    fill="white"
-                    style={{
-                      filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.5))',
-                      transition: 'transform 0.35s ease',
-                      transform: 'scale(1)',
-                    }}
-                  >
-                    <polygon points="0,0 24,14 0,28" />
-                  </svg>
+                  zIndex: 3
+                }} className="play-overlay">
+                  <div style={{
+                    width: '3.75rem', height: '3.75rem',
+                    borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.0)',
+                    border: '1px solid rgba(255,255,255,0.35)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    zIndex: 4,
+                    transition: 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)',
+                  }} className="play-circle">
+                    <svg width="12" height="14" viewBox="0 0 14 16" className="play-triangle" style={{ marginLeft: '2px' }}>
+                      <path d="M0 0v16l14-8z" fill="white" />
+                    </svg>
+                  </div>
                 </div>
               )}
             </div>
@@ -292,8 +297,6 @@ export default function FilmsSection({
       <style>{`
         .hover-scale { overflow: hidden; }
         .hover-scale img { transition: transform 0.5s ease; }
-        .hover-scale:hover img { transform: scale(1.05); }
-        .hover-scale:hover .film-play-icon { transform: scale(1.18) !important; }
         .featured-cta:hover { background: #000 !important; }
         @keyframes fadeIn {
           from { opacity: 0; }
@@ -307,6 +310,38 @@ export default function FilmsSection({
         }
         @media (max-width: 500px) {
           .films-grid-3 { grid-template-columns: 1fr !important; }
+        }
+
+        /* Option B Spotlight Glass Glaze Styles */
+        .glaze-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            110deg,
+            rgba(255, 255, 255, 0) 20%,
+            rgba(255, 255, 255, 0.05) 25%,
+            rgba(255, 255, 255, 0.18) 30%,
+            rgba(255, 255, 255, 0.05) 35%,
+            rgba(255, 255, 255, 0) 40%
+          );
+          background-size: 300% 100%;
+          background-position: 120% 0;
+          z-index: 2;
+          pointer-events: none;
+          transition: background-position 0s;
+        }
+
+        .play-triangle path {
+          transition: fill 0.4s ease, transform 0.4s ease;
+          transform-origin: center;
+        }
+
+        @media (hover: hover) {
+          .hover-scale:hover img { transform: scale(1.04); }
+          .hover-scale:hover .glaze-overlay {
+            background-position: -20% 0;
+            transition: background-position 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+          }
         }
       `}</style>
     </section>

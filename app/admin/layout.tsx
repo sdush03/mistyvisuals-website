@@ -109,6 +109,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       ]
     },
     {
+      label: 'Reels',
+      href: '/admin/reels',
+    },
+    {
       label: 'Analytics',
       href: '/admin/analytics',
     },

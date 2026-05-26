@@ -60,6 +60,17 @@ export interface Film {
   display_order: number
 }
 
+export interface Reel {
+  id: number
+  story_id: number | null
+  title: string
+  youtube_video_id: string
+  thumbnail_url: string | null
+  thumbnail_blur: string | null
+  display_order: number
+  is_published: boolean
+}
+
 export interface Testimonial {
   id: number
   quote: string

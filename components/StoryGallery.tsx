@@ -1,13 +1,15 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import type { StoryPhoto } from '@/lib/types'
+import type { StoryPhoto, Film, Reel } from '@/lib/types'
 
-interface Props { photos: StoryPhoto[], tabs?: string[] | null }
+interface Props { photos: StoryPhoto[], tabs?: string[] | null, films?: Film[], reels?: Reel[] }
 
-export default function StoryGallery({ photos, tabs }: Props) {
+export default function StoryGallery({ photos, tabs, films = [], reels = [] }: Props) {
   const [activeTab, setActiveTab] = useState('All')
   const [lb, setLb] = useState<number | null>(null)
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(null)
+  const [isReelActive, setIsReelActive] = useState(false)
   const [cols, setCols] = useState(3)
   const [aspects, setAspects] = useState<Record<number, number>>({})
 
@@ -107,17 +109,22 @@ export default function StoryGallery({ photos, tabs }: Props) {
 
   const columnsData = getBalancedColumns()
 
+  const hasVideos = (films && films.length > 0) || (reels && reels.length > 0)
+  const tabList = tabs && tabs.length > 0
+    ? (hasVideos ? [...tabs, 'Cinema'] : tabs)
+    : (hasVideos ? ['Cinema'] : [])
+
   if (!photos.length) return null
 
   return (
     <>
       
-      {tabs && tabs.length > 0 && (
+      {tabList.length > 0 && (
         <div style={{
           display: 'flex', justifyContent: 'flex-start', gap: '2rem', padding: '1.5rem var(--page-x) 0.5rem', flexWrap: 'wrap',
           background: '#fff', borderTop: '1px solid #f0f0f0'
         }}>
-          {['All', ...tabs].map(tab => (
+          {['All', ...tabList].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -137,56 +144,308 @@ export default function StoryGallery({ photos, tabs }: Props) {
         </div>
       )}
 
-      {/* ── Masonry columns (True Height-Balanced Flex Masonry) ── */}
-      <div
-        className="story-masonry"
-        style={{
-          display: 'flex',
-          gap: '16px',
-          padding: '16px var(--page-x) 32px',
-          background: '#fff',
-        }}
-      >
-        {columnsData.map((colPhotos, colIdx) => {
-          return (
-            <div key={colIdx} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {colPhotos.map((photo: any) => {
-                const globalIdx = filteredPhotos.findIndex(p => p.id === photo.id)
-                return (
-                  <div
-                    key={photo.id}
-                    onClick={() => setLb(globalIdx)}
-                    style={{
-                      cursor: 'pointer',
-                      overflow: 'hidden',
-                      lineHeight: 0,
-                      aspectRatio: photo._gridAspect || '2/3',
-                      position: 'relative',
-                    }}
-                    className="gallery-item"
-                  >
-                    <img
-                      src={photo.file_url_thumb || photo.file_url}
-                      srcSet={`${photo.file_url_thumb || photo.file_url} 600w, ${photo.file_url} 1920w`}
-                      sizes="(max-width: 560px) 100vw, (max-width: 900px) 50vw, 33vw"
-                      alt=""
-                      loading={globalIdx < 4 ? 'eager' : 'lazy'}
-                      decoding="async"
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        display: 'block',
-                        background: photo.blur_data_url ? `url(${photo.blur_data_url}) no-repeat center/cover` : 'var(--linen-dark)',
-                      }}
-                    />
+      {activeTab === 'Cinema' && hasVideos ? (
+        <div style={{ padding: '2rem var(--page-x) 4rem', background: '#fff' }}>
+          {(() => {
+            const widescreenFilms = films
+            const verticalReels = reels
+            
+            return (
+              <>
+                {widescreenFilms.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4rem', marginBottom: verticalReels.length > 0 ? '5rem' : '0', marginTop: '1rem' }}>
+                    <h4 style={{ fontFamily: 'var(--font-sans)', fontSize: '0.625rem', fontWeight: 600, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--ink-light)', borderBottom: '1px solid var(--border)', paddingBottom: '0.75rem', marginBottom: '1rem' }}>
+                      ✦ Features & Films
+                    </h4>
+                    {widescreenFilms.map((film, index) => {
+                      const isLeft = index % 2 === 0
+                      
+                      return (
+                        <article 
+                          key={film.id} 
+                          style={{ 
+                            display: 'flex', 
+                            flexDirection: 'column',
+                            gap: '2rem'
+                          }}
+                        >
+                          <div className="cinema-spread" style={{ display: 'grid', gap: '2.5rem', alignItems: 'center' }}>
+                            {/* Widescreen Video Card */}
+                            <div 
+                              className="hover-scale"
+                              onClick={() => {
+                                if (film.youtube_video_id) {
+                                  setActiveVideoId(film.youtube_video_id)
+                                  setIsReelActive(false)
+                                }
+                              }}
+                              style={{ 
+                                aspectRatio: '16/9', 
+                                background: '#111', 
+                                overflow: 'hidden', 
+                                position: 'relative',
+                                cursor: 'pointer',
+                                order: isLeft ? 1 : 2
+                              }}
+                            >
+                              {film.thumbnail_url ? (
+                                <img
+                                  src={film.thumbnail_url}
+                                  alt={film.title}
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                />
+                              ) : (
+                                <div style={{ width: '100%', height: '100%', background: '#2a2520', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                                    <polygon points="10,7 23,14 10,21" fill="rgba(255,255,255,0.3)" />
+                                  </svg>
+                                </div>
+                              )}
+                              {/* Option B Spotlight Glass Glaze */}
+                              <div className="glaze-overlay"></div>
+                              {/* Glassmorphic Play Badge */}
+                              <div style={{
+                                position: 'absolute', inset: 0,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                background: 'rgba(0,0,0,0.15)',
+                                transition: 'background 0.4s',
+                                zIndex: 3
+                              }} className="play-overlay">
+                                <div style={{
+                                  width: '4rem', height: '4rem',
+                                  borderRadius: '50%',
+                                  background: 'rgba(255,255,255,0.0)',
+                                  border: '1px solid rgba(255,255,255,0.35)',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  zIndex: 4,
+                                  transition: 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)',
+                                }} className="play-circle">
+                                  <svg width="14" height="16" viewBox="0 0 14 16" className="play-triangle" style={{ marginLeft: '3px' }}>
+                                    <path d="M0 0v16l14-8z" fill="white" />
+                                  </svg>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Editorial Text Block */}
+                            <div style={{ 
+                              order: isLeft ? 2 : 1,
+                              textAlign: 'left',
+                              padding: '0.5rem 0'
+                            }} className="cinema-text">
+                              <h3 style={{ 
+                                fontFamily: 'var(--font-sans)', 
+                                fontSize: 'clamp(1rem, 2vw, 1.25rem)', 
+                                fontWeight: 500, 
+                                letterSpacing: '0.1em', 
+                                textTransform: 'uppercase', 
+                                color: 'var(--ink)', 
+                                marginBottom: '0.75rem' 
+                              }}>
+                                {film.title}
+                              </h3>
+                              {film.subtitle && (
+                                <p style={{ 
+                                  fontFamily: 'var(--font-serif)', 
+                                  fontSize: '0.9rem', 
+                                  fontStyle: 'italic',
+                                  lineHeight: '1.7', 
+                                  color: 'var(--ink-mid)', 
+                                  marginBottom: '1.25rem',
+                                  maxWidth: '480px',
+                                }}>
+                                  {film.subtitle}
+                                </p>
+                              )}
+                              <p style={{ 
+                                fontFamily: 'var(--font-sans)', 
+                                fontSize: '0.625rem', 
+                                fontWeight: 500, 
+                                letterSpacing: '0.2em', 
+                                color: 'var(--ink-light)', 
+                                textTransform: 'uppercase' 
+                              }}>
+                                {[film.location, film.year].filter(Boolean).join(' // ')}
+                              </p>
+                            </div>
+                          </div>
+                        </article>
+                      )
+                    })}
                   </div>
-                )
-              })}
-            </div>
-          )
-        })}
-      </div>
+                )}
+
+                {/* Vertical Reels (2-Column Mobile, 3-Column Desktop) */}
+                {verticalReels.length > 0 && (
+                  <div style={{ marginTop: '3rem' }}>
+                    <h4 style={{ fontFamily: 'var(--font-sans)', fontSize: '0.625rem', fontWeight: 600, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--ink-light)', borderBottom: '1px solid var(--border)', paddingBottom: '0.75rem', marginBottom: '2rem' }}>
+                      ✦ Reels & Stories
+                    </h4>
+                    <div 
+                      className="reels-grid"
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gap: '24px',
+                      }}
+                    >
+                      {verticalReels.map((reel) => (
+                        <article 
+                          key={reel.id}
+                          onClick={() => {
+                            if (reel.youtube_video_id) {
+                              setActiveVideoId(reel.youtube_video_id)
+                              setIsReelActive(true)
+                            }
+                          }}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <div 
+                            className="hover-scale"
+                            style={{ 
+                              aspectRatio: '9/16', 
+                              background: '#111', 
+                              overflow: 'hidden', 
+                              position: 'relative',
+                              marginBottom: '0.75rem'
+                            }}
+                          >
+                            {reel.thumbnail_url ? (
+                              <img
+                                src={reel.thumbnail_url}
+                                alt={reel.title}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              />
+                            ) : (
+                              <div style={{ width: '100%', height: '100%', background: '#2a2520', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5">
+                                  <polygon points="5 3 19 12 5 21 5 3" />
+                                </svg>
+                              </div>
+                            )}
+                            {/* Option B Spotlight Glass Glaze */}
+                            <div className="glaze-overlay"></div>
+                            {/* Reel Play Button */}
+                            <div style={{
+                              position: 'absolute', inset: 0,
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              background: 'rgba(0,0,0,0.1)',
+                              transition: 'background 0.4s',
+                              zIndex: 3
+                            }} className="play-overlay">
+                              <div style={{
+                                width: '2.75rem', height: '2.75rem',
+                                borderRadius: '50%',
+                                background: 'rgba(255,255,255,0.0)',
+                                border: '1px solid rgba(255,255,255,0.35)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                zIndex: 4,
+                                transition: 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)',
+                              }} className="play-circle">
+                                <svg width="10" height="12" viewBox="0 0 10 12" className="play-triangle" style={{ marginLeft: '1px' }}>
+                                  <path d="M0 0v12l10-6z" fill="white" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div style={{ textAlign: 'center' }}>
+                            <h5 style={{ 
+                              fontFamily: 'var(--font-sans)', 
+                              fontSize: '0.6875rem', 
+                              fontWeight: 600, 
+                              letterSpacing: '0.12em', 
+                              textTransform: 'uppercase', 
+                              color: 'var(--ink)' 
+                            }}>
+                              {reel.title}
+                            </h5>
+                          </div>
+                        </article>
+                      ))}
+                      
+                      {verticalReels.length === 4 && (
+                        <div 
+                          className="reel-editorial-card"
+                          style={{
+                            gridColumn: 'span 2',
+                            border: '1px dashed var(--border)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '2rem',
+                            textAlign: 'center',
+                            background: 'var(--linen-light)'
+                          }}
+                        >
+                          <p style={{ fontFamily: 'var(--font-serif)', fontSize: '1rem', fontStyle: 'italic', color: 'var(--ink-mid)', maxWidth: '320px', lineHeight: '1.6', marginBottom: '0.5rem' }}>
+                            "Every look, every touch, every tear. Capturing the brief fragments of a memory, preserved in real-time."
+                          </p>
+                          <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.55rem', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ink-light)' }}>
+                            Misty Visuals Cinema
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
+            )
+          })()}
+        </div>
+      ) : (
+        /* ── Masonry columns (True Height-Balanced Flex Masonry) ── */
+        <div
+          className="story-masonry"
+          style={{
+            display: 'flex',
+            gap: '16px',
+            padding: '16px var(--page-x) 32px',
+            background: '#fff',
+          }}
+        >
+          {columnsData.map((colPhotos, colIdx) => {
+            return (
+              <div key={colIdx} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {colPhotos.map((photo: any) => {
+                  const globalIdx = filteredPhotos.findIndex(p => p.id === photo.id)
+                  return (
+                    <div
+                      key={photo.id}
+                      onClick={() => setLb(globalIdx)}
+                      style={{
+                        cursor: 'pointer',
+                        overflow: 'hidden',
+                        lineHeight: 0,
+                        aspectRatio: photo._gridAspect || '2/3',
+                        position: 'relative',
+                      }}
+                      className="gallery-item"
+                    >
+                      <img
+                        src={photo.file_url_thumb || photo.file_url}
+                        srcSet={`${photo.file_url_thumb || photo.file_url} 600w, ${photo.file_url} 1920w`}
+                        sizes="(max-width: 560px) 100vw, (max-width: 900px) 50vw, 33vw"
+                        alt=""
+                        loading={globalIdx < 4 ? 'eager' : 'lazy'}
+                        decoding="async"
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          display: 'block',
+                          background: photo.blur_data_url ? `url(${photo.blur_data_url}) no-repeat center/cover` : 'var(--linen-dark)',
+                        }}
+                      />
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* ── Lightbox ── */}
       {lb !== null && (
@@ -269,13 +528,113 @@ export default function StoryGallery({ photos, tabs }: Props) {
       <style>{`
         .gallery-item { overflow: hidden; }
         .gallery-item img { transition: transform 0.5s ease; }
-        @media (hover: hover) {
-          .gallery-item:hover img { transform: scale(1.04); }
+        .cinema-spread { grid-template-columns: 1.2fr 0.8fr; }
+        @media (max-width: 960px) {
+          .cinema-spread { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
+          .cinema-text { text-align: center !important; }
+          .cinema-text p { margin: 0.5rem auto 1rem !important; }
         }
         @media (max-width: 640px) {
           .story-masonry { columns: 2 160px !important; padding: 8px 12px 24px !important; column-gap: 8px !important; }
+          .reels-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 16px !important; }
+          .reel-editorial-card { display: none !important; }
+        }
+
+        /* Option B Spotlight Glass Glaze Styles */
+        .glaze-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            110deg,
+            rgba(255, 255, 255, 0) 20%,
+            rgba(255, 255, 255, 0.05) 25%,
+            rgba(255, 255, 255, 0.18) 30%,
+            rgba(255, 255, 255, 0.05) 35%,
+            rgba(255, 255, 255, 0) 40%
+          );
+          background-size: 300% 100%;
+          background-position: 120% 0;
+          z-index: 2;
+          pointer-events: none;
+          transition: background-position 0s;
+        }
+
+        .play-triangle path {
+          transition: fill 0.4s ease, transform 0.4s ease;
+          transform-origin: center;
+        }
+
+        @media (hover: hover) {
+          .hover-scale:hover img { transform: scale(1.04); }
+          .hover-scale:hover .glaze-overlay {
+            background-position: -20% 0;
+            transition: background-position 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+          }
         }
       `}</style>
+
+      {/* ── Cinematic Video Lightbox ── */}
+      {activeVideoId && (
+        <div 
+          role="dialog"
+          aria-modal
+          style={{
+            position: 'fixed', inset: 0,
+            background: 'rgba(10,8,6,0.96)',
+            zIndex: 9999,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }} 
+          onClick={() => { setActiveVideoId(null); setIsReelActive(false); }}
+        >
+          {/* Close button */}
+          <button 
+            onClick={() => { setActiveVideoId(null); setIsReelActive(false); }}
+            style={{
+              position: 'absolute', top: '1.25rem', right: '1.25rem',
+              background: 'rgba(255,255,255,0.1)', border: 'none',
+              borderRadius: '50%', width: '2.5rem', height: '2.5rem',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', zIndex: 10000, backdropFilter: 'blur(8px)',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round">
+              <line x1="1" y1="1" x2="13" y2="13"/>
+              <line x1="13" y1="1" x2="1" y2="13"/>
+            </svg>
+          </button>
+          
+          <div 
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: isReelActive ? 'min(90vw, 360px)' : '90%', 
+              maxWidth: isReelActive ? '360px' : '1120px',
+              aspectRatio: isReelActive ? '9/16' : '16/9',
+              background: '#000',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.8)',
+              position: 'relative'
+            }}
+          >
+            {isReelActive && (
+              <div style={{
+                position: 'absolute', inset: '-40px',
+                background: `radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)`,
+                zIndex: -1,
+                pointerEvents: 'none'
+              }} />
+            )}
+            <iframe
+              width="100%"
+              height="100%"
+              src={`https://www.youtube-nocookie.com/embed/${activeVideoId}?autoplay=1&rel=0&modestbranding=1&showinfo=0&controls=1&vq=hd2160&playsinline=1`}
+              title="YouTube video player"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              style={{ display: 'block', width: '100%', height: '100%' }}
+            ></iframe>
+          </div>
+        </div>
+      )}
     </>
   )
 }

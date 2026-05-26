@@ -257,7 +257,7 @@ export default async function StoryPage({ params }: Props) {
 
         {/* ── Gallery ── */}
         <div id="gallery" style={{ background: '#fff', paddingTop: '3px' }}>
-          <StoryGallery photos={story.photos} tabs={story.tabs} />
+          <StoryGallery photos={story.photos} tabs={story.tabs} films={story.films} reels={story.reels} />
         </div>
 
         {/* ── CTA ── */}
