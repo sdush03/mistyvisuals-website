@@ -1123,6 +1123,8 @@ export default function AdminStoryEditorPage() {
                 {tabPhotos.map((photo, subIdx) => {
                   const isSelected = selectedPhotoIds.includes(photo.id)
                   const isDragging = draggingId === photo.id
+                  const isDraggingSelectedGroup = draggingId !== null && selectedPhotoIds.includes(draggingId)
+                  const isAttachedSelected = isDraggingSelectedGroup && isSelected && !isDragging
                   const showDragIndicator = dragOverPhotoId === photo.id && draggingId !== null && !selectedPhotoIds.includes(photo.id)
                   return (
                     <motion.div 
@@ -1131,7 +1133,31 @@ export default function AdminStoryEditorPage() {
                       className="admin-photo-card"
                       data-id={photo.id}
                       draggable
-                      onDragStart={() => setDraggingId(photo.id)}
+                      onDragStart={(e: any) => {
+                        setDraggingId(photo.id)
+                        if (selectedPhotoIds.includes(photo.id) && selectedPhotoIds.length > 1) {
+                          const dragImage = document.createElement('div')
+                          dragImage.style.background = '#9a7d52'
+                          dragImage.style.color = '#fff'
+                          dragImage.style.padding = '6px 14px'
+                          dragImage.style.borderRadius = '20px'
+                          dragImage.style.fontFamily = 'var(--font-sans), sans-serif'
+                          dragImage.style.fontSize = '0.75rem'
+                          dragImage.style.fontWeight = '600'
+                          dragImage.style.position = 'absolute'
+                          dragImage.style.top = '-1000px'
+                          dragImage.style.zIndex = '99999'
+                          dragImage.style.boxShadow = '0 4px 12px rgba(154, 125, 82, 0.3)'
+                          dragImage.innerText = `📦 Moving ${selectedPhotoIds.length} photos`
+                          document.body.appendChild(dragImage)
+                          e.dataTransfer.setDragImage(dragImage, 10, 10)
+                          setTimeout(() => {
+                            if (document.body.contains(dragImage)) {
+                              document.body.removeChild(dragImage)
+                            }
+                          }, 0)
+                        }
+                      }}
                       onDragOver={e => e.preventDefault()}
                       onDragEnter={() => {
                         if (draggingId !== null && draggingId !== photo.id) {
@@ -1158,13 +1184,14 @@ export default function AdminStoryEditorPage() {
                         aspectRatio: '1', 
                         borderRadius: '8px', 
                         overflow: 'hidden',
-                        border: showDragIndicator
-                          ? '2.5px dashed #9a7d52'
-                          : (isSelected ? '2.5px solid #9a7d52' : '1px solid #ece9e4'),
+                        border: isSelected ? '2.5px solid #9a7d52' : '1px solid #ece9e4',
                         background: '#fcfbf9',
                         cursor: isDragging ? 'grabbing' : 'grab',
-                        opacity: isDragging ? 0.4 : 1,
+                        opacity: isDragging ? 0.3 : (isAttachedSelected ? 0.45 : 1),
                         transition: 'border-color 0.2s, opacity 0.2s',
+                      }}
+                      animate={{
+                        scale: isDragging ? 0.98 : (isAttachedSelected ? 0.96 : 1),
                       }}
                       whileHover={{ scale: 1.02 }}
                       transition={{ type: 'spring', stiffness: 350, damping: 28 }}
@@ -1174,28 +1201,26 @@ export default function AdminStoryEditorPage() {
                       {showDragIndicator && (
                         <div style={{
                           position: 'absolute',
-                          inset: 0,
-                          background: 'rgba(154, 125, 82, 0.12)',
-                          backdropFilter: 'blur(1.5px)',
+                          top: '-4px',
+                          bottom: '-4px',
+                          left: '-0.5rem',
+                          width: '6px',
                           display: 'flex',
+                          flexDirection: 'column',
                           alignItems: 'center',
-                          justifyContent: 'center',
-                          zIndex: 13,
+                          justifyContent: 'space-between',
+                          zIndex: 20,
                           pointerEvents: 'none',
+                          transform: 'translateX(-50%)',
                         }}>
-                          <span style={{
-                            background: '#9a7d52',
-                            color: '#fff',
-                            fontSize: '0.6875rem',
-                            fontWeight: 600,
-                            padding: '3px 10px',
-                            borderRadius: '4px',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                          }}>
-                            Place Here
-                          </span>
+                          <div style={{
+                            flex: 1,
+                            width: '0px',
+                            borderLeft: '3px dotted #9a7d52',
+                            filter: 'drop-shadow(0 0 4px rgba(154, 125, 82, 0.6))',
+                          }} />
+                          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#9a7d52', position: 'absolute', top: '-2px' }} />
+                          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#9a7d52', position: 'absolute', bottom: '-2px' }} />
                         </div>
                       )}
 
