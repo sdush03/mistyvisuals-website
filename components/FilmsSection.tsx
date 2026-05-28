@@ -125,7 +125,12 @@ export default function FilmsSection({
           <article 
             key={film.id} 
             onClick={() => {
-              if (film.youtube_video_id) setActiveVideoId(film.youtube_video_id)
+              if (film.youtube_video_id) {
+                setActiveVideoId(film.youtube_video_id)
+                if (typeof window !== 'undefined' && (window as any).trackEvent) {
+                  (window as any).trackEvent('play_film', { title: film.title })
+                }
+              }
             }}
             style={{ cursor: film.youtube_video_id ? 'pointer' : 'default' }}
           >

@@ -20,8 +20,17 @@ export default function ContactForm() {
   const [focusedField, setFocusedField] = useState<string | null>(null)
   const [status, setStatus] = useState<FormStatus>('idle')
   const [errorMsg, setErrorMsg] = useState('')
+  const [startedTyping, setStartedTyping] = useState(false)
 
-  const handleFocus = (field: string) => setFocusedField(field)
+  const handleFocus = (field: string) => {
+    setFocusedField(field)
+    if (!startedTyping) {
+      setStartedTyping(true)
+      if (typeof window !== 'undefined' && (window as any).trackEvent) {
+        (window as any).trackEvent('begin_inquiry')
+      }
+    }
+  }
   const handleBlur = (field: string, value: string) => {
     if (focusedField === field) {
       setFocusedField(null)
@@ -62,6 +71,9 @@ export default function ContactForm() {
 
       if (response.ok && data.success) {
         setStatus('success')
+        if (typeof window !== 'undefined' && (window as any).trackEvent) {
+          (window as any).trackEvent('submit_inquiry', { scope: formData.coverageScope })
+        }
       } else {
         setStatus('error')
         setErrorMsg(data.error || 'Failed to submit inquiry. Please try again.')

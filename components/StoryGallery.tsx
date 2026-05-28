@@ -177,6 +177,9 @@ export default function StoryGallery({ photos, tabs, films = [], reels = [] }: P
                                 if (film.youtube_video_id) {
                                   setActiveVideoId(film.youtube_video_id)
                                   setIsReelActive(false)
+                                  if (typeof window !== 'undefined' && (window as any).trackEvent) {
+                                    (window as any).trackEvent('play_film', { title: film.title })
+                                  }
                                 }
                               }}
                               style={{ 
@@ -295,6 +298,9 @@ export default function StoryGallery({ photos, tabs, films = [], reels = [] }: P
                             if (reel.youtube_video_id) {
                               setActiveVideoId(reel.youtube_video_id)
                               setIsReelActive(true)
+                              if (typeof window !== 'undefined' && (window as any).trackEvent) {
+                                (window as any).trackEvent('play_reel', { title: reel.title })
+                              }
                             }
                           }}
                           style={{ cursor: 'pointer' }}
