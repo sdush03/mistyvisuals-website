@@ -29,6 +29,14 @@ export default function AdminStoryEditorPage() {
   
   const [draggingId, setDraggingId] = useState<number | null>(null)
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<number[]>([])
+  const [dragOverPhotoId, setDragOverPhotoId] = useState<number | null>(null)
+  const [marquee, setMarquee] = useState<{
+    startX: number;
+    startY: number;
+    currentX: number;
+    currentY: number;
+    tabName: string;
+  } | null>(null)
   const [catDropdownOpen, setCatDropdownOpen] = useState(false)
   const [tabs, setTabs] = useState<string[]>([])
   const [newCat, setNewCat] = useState('')
@@ -68,6 +76,96 @@ export default function AdminStoryEditorPage() {
       setAllStories(allStoriesData)
     })
   }, [id])
+
+  // Marquee mouse drag multi-selection hook
+  useEffect(() => {
+    if (!marquee) return
+
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      setMarquee(prev => {
+        if (!prev) return null
+        
+        const nextMarquee = {
+          ...prev,
+          currentX: e.clientX,
+          currentY: e.clientY
+        }
+
+        // Bounding box boundary values
+        const left = Math.min(nextMarquee.startX, nextMarquee.currentX)
+        const top = Math.min(nextMarquee.startY, nextMarquee.currentY)
+        const right = Math.max(nextMarquee.startX, nextMarquee.currentX)
+        const bottom = Math.max(nextMarquee.startY, nextMarquee.currentY)
+
+        // Find cards inside active marquee tab grid container
+        const gridElement = document.getElementById(`grid-container-${nextMarquee.tabName}`)
+        if (!gridElement) return nextMarquee
+
+        const cards = gridElement.querySelectorAll('.admin-photo-card')
+        const newlySelected: number[] = []
+
+        cards.forEach(card => {
+          const cardIdAttr = card.getAttribute('data-id')
+          if (!cardIdAttr) return
+          const cardId = Number(cardIdAttr)
+          
+          const cardRect = card.getBoundingClientRect()
+          const isOverlapping = !(
+            cardRect.right < left ||
+            cardRect.left > right ||
+            cardRect.bottom < top ||
+            cardRect.top > bottom
+          )
+
+          if (isOverlapping) {
+            newlySelected.push(cardId)
+          }
+        })
+
+        // Enforce same-tab selection: update state atomically
+        setSelectedPhotoIds(newlySelected)
+
+        return nextMarquee
+      })
+    }
+
+    const handleGlobalMouseUp = () => {
+      setMarquee(null)
+    }
+
+    window.addEventListener('mousemove', handleGlobalMouseMove)
+    window.addEventListener('mouseup', handleGlobalMouseUp)
+
+    return () => {
+      window.removeEventListener('mousemove', handleGlobalMouseMove)
+      window.removeEventListener('mouseup', handleGlobalMouseUp)
+    }
+  }, [marquee])
+
+  const startMarquee = (e: React.MouseEvent<HTMLDivElement>, tabName: string) => {
+    if (e.button !== 0) return // Only left click
+
+    // If click initiated inside an interactive element, do not draw marquee box
+    const target = e.target as HTMLElement
+    if (
+      target.closest('button') || 
+      target.closest('a') || 
+      target.closest('input') || 
+      target.closest('.admin-photo-card')
+    ) {
+      return
+    }
+
+    // Initialize marquee coordinates
+    setMarquee({
+      startX: e.clientX,
+      startY: e.clientY,
+      currentX: e.clientX,
+      currentY: e.clientY,
+      tabName
+    })
+  }
+
 
   const saveStory = async () => {
     setSaving(true)
@@ -283,6 +381,7 @@ export default function AdminStoryEditorPage() {
       setPhotos(finalPhotos)
       setSelectedPhotoIds([])
       setDraggingId(null)
+      setDragOverPhotoId(null)
 
       await apiFetch(`/api/website/stories/${id}/photos/reorder`, {
         method: 'PATCH',
@@ -304,6 +403,7 @@ export default function AdminStoryEditorPage() {
       const finalPhotos = updatedPhotos.map((p, i) => ({ ...p, display_order: i }))
       setPhotos(finalPhotos)
       setDraggingId(null)
+      setDragOverPhotoId(null)
 
       await apiFetch(`/api/website/stories/${id}/photos/reorder`, {
         method: 'PATCH',
@@ -833,6 +933,52 @@ export default function AdminStoryEditorPage() {
                   {isAll ? 'Gallery Photos (Default Grid)' : `${tab} Tab Photos`}
                 </h2>
                 <p style={{ fontSize: '0.75rem', color: '#8c867e' }}>{tabPhotos.length} photos assigned • Drag & drop images here to upload • Use ← and → to reorder.</p>
+                
+                {tabPhotos.length > 0 && (
+                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.35rem', alignItems: 'center' }}>
+                    <button
+                      onClick={() => setSelectedPhotoIds(tabPhotos.map(p => p.id))}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#9a7d52',
+                        fontSize: '0.6875rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        padding: 0,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        textDecoration: 'underline',
+                        transition: 'color 0.2s'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.color = '#7d643f'}
+                      onMouseLeave={e => e.currentTarget.style.color = '#9a7d52'}
+                    >
+                      Select All
+                    </button>
+                    <span style={{ color: '#e5e1da', fontSize: '0.6875rem' }}>•</span>
+                    <button
+                      onClick={() => setSelectedPhotoIds([])}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#8c867e',
+                        fontSize: '0.6875rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        padding: 0,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        textDecoration: 'underline',
+                        transition: 'color 0.2s'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.color = '#1c1a18'}
+                      onMouseLeave={e => e.currentTarget.style.color = '#8c867e'}
+                    >
+                      Deselect All
+                    </button>
+                  </div>
+                )}
               </div>
               
               <button 
@@ -943,21 +1089,65 @@ export default function AdminStoryEditorPage() {
               </motion.div>
             )}
 
+            {/* Visual Marquee Box */}
+            {marquee && marquee.tabName === tab && (
+              <div 
+                style={{
+                  position: 'fixed',
+                  left: Math.min(marquee.startX, marquee.currentX),
+                  top: Math.min(marquee.startY, marquee.currentY),
+                  width: Math.abs(marquee.startX - marquee.currentX),
+                  height: Math.abs(marquee.startY - marquee.currentY),
+                  background: 'rgba(154, 125, 82, 0.15)',
+                  border: '1px solid #9a7d52',
+                  borderRadius: '2px',
+                  zIndex: 9999,
+                  pointerEvents: 'none',
+                }}
+              />
+            )}
+
             {/* Premium Reordering photo grids */}
             {tabPhotos.length > 0 ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1rem' }}>
+              <div 
+                id={`grid-container-${tab}`}
+                onMouseDown={e => startMarquee(e, tab)}
+                style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', 
+                  gap: '1rem',
+                  position: 'relative',
+                  userSelect: marquee ? 'none' : 'auto'
+                }}
+              >
                 {tabPhotos.map((photo, subIdx) => {
                   const isSelected = selectedPhotoIds.includes(photo.id)
                   const isDragging = draggingId === photo.id
+                  const showDragIndicator = dragOverPhotoId === photo.id && draggingId !== null && !selectedPhotoIds.includes(photo.id)
                   return (
                     <motion.div 
                       layout
                       key={photo.id}
+                      className="admin-photo-card"
+                      data-id={photo.id}
                       draggable
                       onDragStart={() => setDraggingId(photo.id)}
                       onDragOver={e => e.preventDefault()}
+                      onDragEnter={() => {
+                        if (draggingId !== null && draggingId !== photo.id) {
+                          setDragOverPhotoId(photo.id)
+                        }
+                      }}
+                      onDragLeave={() => {
+                        if (dragOverPhotoId === photo.id) {
+                          setDragOverPhotoId(null)
+                        }
+                      }}
                       onDrop={() => handlePhotoDrop(photo.id, tabPhotos)}
-                      onDragEnd={() => setDraggingId(null)}
+                      onDragEnd={() => {
+                        setDraggingId(null)
+                        setDragOverPhotoId(null)
+                      }}
                       onClick={() => {
                         if (selectedPhotoIds.length > 0) {
                           handlePhotoSelect(photo)
@@ -968,7 +1158,9 @@ export default function AdminStoryEditorPage() {
                         aspectRatio: '1', 
                         borderRadius: '8px', 
                         overflow: 'hidden',
-                        border: isSelected ? '2.5px solid #9a7d52' : '1px solid #ece9e4',
+                        border: showDragIndicator
+                          ? '2.5px dashed #9a7d52'
+                          : (isSelected ? '2.5px solid #9a7d52' : '1px solid #ece9e4'),
                         background: '#fcfbf9',
                         cursor: isDragging ? 'grabbing' : 'grab',
                         opacity: isDragging ? 0.4 : 1,
@@ -979,6 +1171,34 @@ export default function AdminStoryEditorPage() {
                     >
                       <img src={photo.file_url_thumb || photo.file_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
                       
+                      {showDragIndicator && (
+                        <div style={{
+                          position: 'absolute',
+                          inset: 0,
+                          background: 'rgba(154, 125, 82, 0.12)',
+                          backdropFilter: 'blur(1.5px)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          zIndex: 13,
+                          pointerEvents: 'none',
+                        }}>
+                          <span style={{
+                            background: '#9a7d52',
+                            color: '#fff',
+                            fontSize: '0.6875rem',
+                            fontWeight: 600,
+                            padding: '3px 10px',
+                            borderRadius: '4px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                          }}>
+                            Place Here
+                          </span>
+                        </div>
+                      )}
+
                       {photo.is_cover && (
                         <div style={{ position: 'absolute', top: '6px', left: '6px', background: '#9a7d52', borderRadius: '4px', padding: '2px 6px', fontSize: '0.5625rem', color: '#fff', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, zIndex: 11 }}>
                           Cover
