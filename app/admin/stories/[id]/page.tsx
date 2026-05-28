@@ -29,7 +29,8 @@ export default function AdminStoryEditorPage() {
   
   const [draggingId, setDraggingId] = useState<number | null>(null)
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<number[]>([])
-  const [dragOverPhotoId, setDragOverPhotoId] = useState<number | null>(null)
+  const [insertionIndex, setInsertionIndex] = useState<number | null>(null)
+  const [insertionTab, setInsertionTab] = useState<string | null>(null)
   const [marquee, setMarquee] = useState<{
     startX: number;
     startY: number;
@@ -356,63 +357,101 @@ export default function AdminStoryEditorPage() {
     })
   }
 
-  const handlePhotoDrop = async (targetPhotoId: number, tabPhotos: Photo[]) => {
-    if (draggingId === null || draggingId === targetPhotoId) return
+  const handleGridDragOver = (e: React.DragEvent<HTMLDivElement>, tabPhotos: Photo[]) => {
+    e.preventDefault()
+    if (draggingId === null) return
 
-    const isDraggingSelectedGroup = selectedPhotoIds.includes(draggingId)
+    // Find all cards in this grid container
+    const container = e.currentTarget
+    const cards = Array.from(container.querySelectorAll('.admin-photo-card'))
+    if (cards.length === 0) return
 
-    if (isDraggingSelectedGroup) {
-      if (!areSelectedAdjacent(tabPhotos)) {
-        alert('Resequencing multiple photos together is supported only for adjacent selections.')
-        setDraggingId(null)
-        return
+    let closestCard: Element | null = null
+    let minDistance = Infinity
+    let isLeftHalf = true
+
+    const mouseX = e.clientX
+    const mouseY = e.clientY
+
+    cards.forEach(card => {
+      const rect = card.getBoundingClientRect()
+      const centerX = rect.left + rect.width / 2
+      const centerY = rect.top + rect.height / 2
+
+      // Euclidean distance to card center
+      const distance = Math.sqrt(
+        Math.pow(mouseX - centerX, 2) + Math.pow(mouseY - centerY, 2)
+      )
+
+      if (distance < minDistance) {
+        minDistance = distance
+        closestCard = card
+        isLeftHalf = mouseX < centerX
       }
+    })
 
-      const groupItems = photos.filter(p => selectedPhotoIds.includes(p.id))
-      const remainingItems = photos.filter(p => !selectedPhotoIds.includes(p.id))
-      
-      const targetIdxInRemaining = remainingItems.findIndex(p => p.id === targetPhotoId)
-      if (targetIdxInRemaining === -1) return
-
-      const updatedPhotos = [...remainingItems]
-      updatedPhotos.splice(targetIdxInRemaining, 0, ...groupItems)
-
-      const finalPhotos = updatedPhotos.map((p, i) => ({ ...p, display_order: i }))
-      setPhotos(finalPhotos)
-      setSelectedPhotoIds([])
-      setDraggingId(null)
-      setDragOverPhotoId(null)
-
-      await apiFetch(`/api/website/stories/${id}/photos/reorder`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          order: finalPhotos.map(p => ({ id: p.id, display_order: p.display_order }))
-        })
-      })
-    } else {
-      const activePhotos = [...photos]
-      const fromIdx = activePhotos.findIndex(p => p.id === draggingId)
-      const toIdx = activePhotos.findIndex(p => p.id === targetPhotoId)
-      if (fromIdx === -1 || toIdx === -1) return
-
-      const updatedPhotos = [...photos]
-      const [movedItem] = updatedPhotos.splice(fromIdx, 1)
-      updatedPhotos.splice(toIdx, 0, movedItem)
-
-      const finalPhotos = updatedPhotos.map((p, i) => ({ ...p, display_order: i }))
-      setPhotos(finalPhotos)
-      setDraggingId(null)
-      setDragOverPhotoId(null)
-
-      await apiFetch(`/api/website/stories/${id}/photos/reorder`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          order: finalPhotos.map(p => ({ id: p.id, display_order: p.display_order }))
-        })
-      })
+    if (closestCard) {
+      const cardIdAttr = (closestCard as HTMLElement).getAttribute('data-id')
+      if (cardIdAttr) {
+        const targetId = Number(cardIdAttr)
+        const targetIdx = tabPhotos.findIndex(p => p.id === targetId)
+        if (targetIdx !== -1) {
+          const finalInsertionIdx = isLeftHalf ? targetIdx : targetIdx + 1
+          setInsertionIndex(finalInsertionIdx)
+          setInsertionTab(tabPhotos[0]?.tab_name || 'All')
+        }
+      }
     }
+  }
+
+  const handlePhotoDropAtIdx = async (insertionIdx: number, tabName: string) => {
+    if (draggingId === null) return
+    const isDraggingSelectedGroup = selectedPhotoIds.includes(draggingId)
+    const activeTab = tabName || 'All'
+
+    // Determine dragging group items and remaining items
+    const groupItems = photos.filter(p => isDraggingSelectedGroup ? selectedPhotoIds.includes(p.id) : p.id === draggingId)
+    const remainingItems = photos.filter(p => isDraggingSelectedGroup ? !selectedPhotoIds.includes(p.id) : p.id !== draggingId)
+
+    // Find tab remaining photos
+    const isAll = activeTab === 'All'
+    const tabRemainingPhotos = isAll 
+      ? remainingItems.filter(p => !p.tab_name || p.tab_name === 'All')
+      : remainingItems.filter(p => p.tab_name === activeTab)
+
+    // Calculate insertion index in remainingItems list
+    let globalInsertIdx = 0
+    if (tabRemainingPhotos.length === 0) {
+      globalInsertIdx = remainingItems.length
+    } else if (insertionIdx <= 0) {
+      globalInsertIdx = remainingItems.findIndex(p => p.id === tabRemainingPhotos[0].id)
+      if (globalInsertIdx === -1) globalInsertIdx = 0
+    } else if (insertionIdx >= tabRemainingPhotos.length) {
+      const lastTabPhotoIdx = remainingItems.findIndex(p => p.id === tabRemainingPhotos[tabRemainingPhotos.length - 1].id)
+      globalInsertIdx = lastTabPhotoIdx !== -1 ? lastTabPhotoIdx + 1 : remainingItems.length
+    } else {
+      const targetPhoto = tabRemainingPhotos[insertionIdx]
+      globalInsertIdx = remainingItems.findIndex(p => p.id === targetPhoto.id)
+      if (globalInsertIdx === -1) globalInsertIdx = remainingItems.length
+    }
+
+    const updatedPhotos = [...remainingItems]
+    updatedPhotos.splice(globalInsertIdx, 0, ...groupItems)
+
+    const finalPhotos = updatedPhotos.map((p, i) => ({ ...p, display_order: i }))
+    setPhotos(finalPhotos)
+    setSelectedPhotoIds([])
+    setDraggingId(null)
+    setInsertionIndex(null)
+    setInsertionTab(null)
+
+    await apiFetch(`/api/website/stories/${id}/photos/reorder`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        order: finalPhotos.map(p => ({ id: p.id, display_order: p.display_order }))
+      })
+    })
   }
 
   const handleBulkDelete = async () => {
@@ -1112,6 +1151,8 @@ export default function AdminStoryEditorPage() {
               <div 
                 id={`grid-container-${tab}`}
                 onMouseDown={e => startMarquee(e, tab)}
+                onDragOver={e => handleGridDragOver(e, tabPhotos)}
+                onDrop={() => handlePhotoDropAtIdx(insertionIndex ?? 0, tab)}
                 style={{ 
                   display: 'grid', 
                   gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', 
@@ -1125,7 +1166,6 @@ export default function AdminStoryEditorPage() {
                   const isDragging = draggingId === photo.id
                   const isDraggingSelectedGroup = draggingId !== null && selectedPhotoIds.includes(draggingId)
                   const isAttachedSelected = isDraggingSelectedGroup && isSelected && !isDragging
-                  const showDragIndicator = dragOverPhotoId === photo.id && draggingId !== null && !selectedPhotoIds.includes(photo.id)
                   return (
                     <motion.div 
                       layout
@@ -1158,21 +1198,10 @@ export default function AdminStoryEditorPage() {
                           }, 0)
                         }
                       }}
-                      onDragOver={e => e.preventDefault()}
-                      onDragEnter={() => {
-                        if (draggingId !== null && draggingId !== photo.id) {
-                          setDragOverPhotoId(photo.id)
-                        }
-                      }}
-                      onDragLeave={() => {
-                        if (dragOverPhotoId === photo.id) {
-                          setDragOverPhotoId(null)
-                        }
-                      }}
-                      onDrop={() => handlePhotoDrop(photo.id, tabPhotos)}
                       onDragEnd={() => {
                         setDraggingId(null)
-                        setDragOverPhotoId(null)
+                        setInsertionIndex(null)
+                        setInsertionTab(null)
                       }}
                       onClick={() => {
                         if (selectedPhotoIds.length > 0) {
@@ -1198,7 +1227,8 @@ export default function AdminStoryEditorPage() {
                     >
                       <img src={photo.file_url_thumb || photo.file_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
                       
-                      {showDragIndicator && (
+                      {/* Visual insertion dotted line before card */}
+                      {insertionTab === tab && insertionIndex === subIdx && draggingId !== null && (
                         <div style={{
                           position: 'absolute',
                           top: '-4px',
@@ -1212,6 +1242,33 @@ export default function AdminStoryEditorPage() {
                           zIndex: 20,
                           pointerEvents: 'none',
                           transform: 'translateX(-50%)',
+                        }}>
+                          <div style={{
+                            flex: 1,
+                            width: '0px',
+                            borderLeft: '3px dotted #9a7d52',
+                            filter: 'drop-shadow(0 0 4px rgba(154, 125, 82, 0.6))',
+                          }} />
+                          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#9a7d52', position: 'absolute', top: '-2px' }} />
+                          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#9a7d52', position: 'absolute', bottom: '-2px' }} />
+                        </div>
+                      )}
+
+                      {/* Visual insertion dotted line after the last card */}
+                      {insertionTab === tab && insertionIndex === tabPhotos.length && subIdx === tabPhotos.length - 1 && draggingId !== null && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '-4px',
+                          bottom: '-4px',
+                          right: '-0.5rem',
+                          width: '6px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          zIndex: 20,
+                          pointerEvents: 'none',
+                          transform: 'translateX(50%)',
                         }}>
                           <div style={{
                             flex: 1,
