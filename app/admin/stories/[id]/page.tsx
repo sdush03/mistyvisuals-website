@@ -1070,79 +1070,86 @@ export default function AdminStoryEditorPage() {
             )}
 
             {/* Bulk Actions Bar */}
-            {selectedPhotoIds.length > 0 && tabPhotos.some(p => selectedPhotoIds.includes(p.id)) && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  background: 'rgba(28, 26, 24, 0.92)',
-                  backdropFilter: 'blur(8px)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '8px',
-                  padding: '0.75rem 1.25rem',
-                  marginBottom: '1.25rem',
-                  color: '#fff',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                  zIndex: 20,
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.8125rem' }}>
-                  <span style={{ fontWeight: 600, color: '#a39274' }}>
-                    {selectedPhotoIds.length} {selectedPhotoIds.length === 1 ? 'photo' : 'photos'} selected
-                  </span>
-                  <span style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.2)' }} />
-                  <span style={{ color: '#ccc', fontSize: '0.75rem' }}>
-                    {areSelectedAdjacent(tabPhotos) 
-                      ? '✓ Contiguous adjacent block (You can drag-reorder them together)' 
-                      : '⚠ Non-adjacent block (Group drag-reorder disabled; select adjacent photos to drag together)'}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
-                  <button
-                    onClick={handleBulkDelete}
-                    className="admin-btn"
-                    style={{
-                      background: '#ef4444',
-                      color: '#fff',
-                      border: 'none',
-                      padding: '0.4rem 1rem',
-                      borderRadius: '6px',
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      transition: 'background 0.2s',
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#dc2626'}
-                    onMouseLeave={e => e.currentTarget.style.background = '#ef4444'}
-                  >
-                    Delete Selected
-                  </button>
-                  <button
-                    onClick={() => setSelectedPhotoIds([])}
-                    className="admin-btn"
-                    style={{
-                      background: 'rgba(255,255,255,0.1)',
-                      color: '#fff',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      padding: '0.4rem 1rem',
-                      borderRadius: '6px',
-                      fontSize: '0.75rem',
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </motion.div>
-            )}
+            <AnimatePresence>
+              {selectedPhotoIds.length > 0 && tabPhotos.some(p => selectedPhotoIds.includes(p.id)) && (
+                <motion.div
+                  initial={{ opacity: 0, y: 50, x: '-50%' }}
+                  animate={{ opacity: 1, y: 0, x: '-50%' }}
+                  exit={{ opacity: 0, y: 50, x: '-50%' }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                  style={{
+                    position: 'fixed',
+                    bottom: '2rem',
+                    left: '50%',
+                    width: '90%',
+                    maxWidth: '800px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    background: 'rgba(28, 26, 24, 0.95)',
+                    backdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    borderRadius: '12px',
+                    padding: '0.85rem 1.5rem',
+                    color: '#fff',
+                    boxShadow: '0 20px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.05)',
+                    zIndex: 1000,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.8125rem' }}>
+                    <span style={{ fontWeight: 600, color: '#a39274' }}>
+                      {selectedPhotoIds.length} {selectedPhotoIds.length === 1 ? 'photo' : 'photos'} selected
+                    </span>
+                    <span style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.2)' }} />
+                    <span style={{ color: '#ccc', fontSize: '0.75rem' }}>
+                      {areSelectedAdjacent(tabPhotos) 
+                        ? '✓ Contiguous adjacent block (You can drag-reorder them together)' 
+                        : '⚠ Non-adjacent block (Group drag-reorder disabled; select adjacent photos to drag together)'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button
+                      onClick={handleBulkDelete}
+                      className="admin-btn"
+                      style={{
+                        background: '#ef4444',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '0.4rem 1rem',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'background 0.2s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#dc2626'}
+                      onMouseLeave={e => e.currentTarget.style.background = '#ef4444'}
+                    >
+                      Delete Selected
+                    </button>
+                    <button
+                      onClick={() => setSelectedPhotoIds([])}
+                      className="admin-btn"
+                      style={{
+                        background: 'rgba(255,255,255,0.1)',
+                        color: '#fff',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        padding: '0.4rem 1rem',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Visual Marquee Box */}
             {marquee && marquee.tabName === tab && (
