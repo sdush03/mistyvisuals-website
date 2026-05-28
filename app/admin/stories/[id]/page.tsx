@@ -413,24 +413,40 @@ export default function AdminStoryEditorPage() {
     const groupItems = photos.filter(p => isDraggingSelectedGroup ? selectedPhotoIds.includes(p.id) : p.id === draggingId)
     const remainingItems = photos.filter(p => isDraggingSelectedGroup ? !selectedPhotoIds.includes(p.id) : p.id !== draggingId)
 
-    // Find tab remaining photos
+    // Find original tab photos to evaluate forward movement
     const isAll = activeTab === 'All'
+    const tabPhotos = isAll
+      ? photos.filter(p => !p.tab_name || p.tab_name === 'All')
+      : photos.filter(p => p.tab_name === activeTab)
+
+    // Adjust insertionIdx for any removed items that were before the insertion index
+    const groupItemIds = new Set(groupItems.map(p => p.id))
+    const shift = tabPhotos.reduce((acc, p, idx) => {
+      if (groupItemIds.has(p.id) && idx < insertionIdx) {
+        return acc + 1
+      }
+      return acc
+    }, 0)
+
+    const adjustedInsertionIdx = insertionIdx - shift
+
+    // Find tab remaining photos
     const tabRemainingPhotos = isAll 
       ? remainingItems.filter(p => !p.tab_name || p.tab_name === 'All')
       : remainingItems.filter(p => p.tab_name === activeTab)
 
-    // Calculate insertion index in remainingItems list
+    // Calculate insertion index in remainingItems list using adjusted index
     let globalInsertIdx = 0
     if (tabRemainingPhotos.length === 0) {
       globalInsertIdx = remainingItems.length
-    } else if (insertionIdx <= 0) {
+    } else if (adjustedInsertionIdx <= 0) {
       globalInsertIdx = remainingItems.findIndex(p => p.id === tabRemainingPhotos[0].id)
       if (globalInsertIdx === -1) globalInsertIdx = 0
-    } else if (insertionIdx >= tabRemainingPhotos.length) {
+    } else if (adjustedInsertionIdx >= tabRemainingPhotos.length) {
       const lastTabPhotoIdx = remainingItems.findIndex(p => p.id === tabRemainingPhotos[tabRemainingPhotos.length - 1].id)
       globalInsertIdx = lastTabPhotoIdx !== -1 ? lastTabPhotoIdx + 1 : remainingItems.length
     } else {
-      const targetPhoto = tabRemainingPhotos[insertionIdx]
+      const targetPhoto = tabRemainingPhotos[adjustedInsertionIdx]
       globalInsertIdx = remainingItems.findIndex(p => p.id === targetPhoto.id)
       if (globalInsertIdx === -1) globalInsertIdx = remainingItems.length
     }
