@@ -25,6 +25,7 @@ export default function AdminStoryEditorPage() {
   // Isolated upload states
   const [uploadingTab, setUploadingTab] = useState<string | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [activeDragOverTab, setActiveDragOverTab] = useState<string | null>(null)
   
   const [draggingId, setDraggingId] = useState<number | null>(null)
   const [catDropdownOpen, setCatDropdownOpen] = useState(false)
@@ -684,9 +685,35 @@ export default function AdminStoryEditorPage() {
         const tabPhotos = isAll 
           ? photos.filter(p => !p.tab_name || p.tab_name === 'All') 
           : photos.filter(p => p.tab_name === tab);
+        const isDragOver = activeDragOverTab === tab;
         
         return (
-          <div key={tab} className="admin-card" style={{ marginBottom: '2rem', overflow: 'hidden' }}>
+          <div 
+            key={tab} 
+            className="admin-card" 
+            style={{ 
+              marginBottom: '2rem', 
+              overflow: 'hidden',
+              border: isDragOver ? '2px dashed #9a7d52' : '1px solid #e5e1da',
+              background: isDragOver ? '#fcfaf7' : '#fff',
+              transition: 'all 0.2s ease',
+            }}
+            onDragOver={e => {
+              e.preventDefault();
+              setActiveDragOverTab(tab);
+            }}
+            onDragLeave={() => {
+              setActiveDragOverTab(null);
+            }}
+            onDrop={async e => {
+              e.preventDefault();
+              setActiveDragOverTab(null);
+              const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+              if (files.length) {
+                await uploadPhotos(files, isAll ? null : tab);
+              }
+            }}
+          >
             
             {/* Header controls for tab */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
@@ -694,7 +721,7 @@ export default function AdminStoryEditorPage() {
                 <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.35rem', fontWeight: 400, color: '#1c1a18', marginBottom: '0.2rem' }}>
                   {isAll ? 'Gallery Photos (Default Grid)' : `${tab} Tab Photos`}
                 </h2>
-                <p style={{ fontSize: '0.75rem', color: '#8c867e' }}>{tabPhotos.length} photos assigned • Use ← and → buttons to reorder photos.</p>
+                <p style={{ fontSize: '0.75rem', color: '#8c867e' }}>{tabPhotos.length} photos assigned • Drag & drop images here to upload • Use ← and → to reorder.</p>
               </div>
               
               <button 
@@ -844,7 +871,7 @@ export default function AdminStoryEditorPage() {
               </div>
             ) : (
               <div style={{ padding: '2rem', border: '1px dashed #e5e1da', borderRadius: '8px', textAlign: 'center', color: '#c0b9af', fontSize: '0.8125rem' }}>
-                No photos uploaded yet in this section. Click '+ Upload to {tab}' above to begin.
+                No photos uploaded yet in this section. Click '+ Upload to {tab}' above or drop files here to begin.
               </div>
             )}
 
