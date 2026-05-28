@@ -1167,66 +1167,12 @@ export default function AdminStoryEditorPage() {
                   const isDraggingSelectedGroup = draggingId !== null && selectedPhotoIds.includes(draggingId)
                   const isAttachedSelected = isDraggingSelectedGroup && isSelected && !isDragging
                   return (
-                    <motion.div 
-                      layout
+                    <div 
                       key={photo.id}
                       className="admin-photo-card"
                       data-id={photo.id}
-                      draggable
-                      onDragStart={(e: any) => {
-                        setDraggingId(photo.id)
-                        if (selectedPhotoIds.includes(photo.id) && selectedPhotoIds.length > 1) {
-                          const dragImage = document.createElement('div')
-                          dragImage.style.background = '#9a7d52'
-                          dragImage.style.color = '#fff'
-                          dragImage.style.padding = '6px 14px'
-                          dragImage.style.borderRadius = '20px'
-                          dragImage.style.fontFamily = 'var(--font-sans), sans-serif'
-                          dragImage.style.fontSize = '0.75rem'
-                          dragImage.style.fontWeight = '600'
-                          dragImage.style.position = 'absolute'
-                          dragImage.style.top = '-1000px'
-                          dragImage.style.zIndex = '99999'
-                          dragImage.style.boxShadow = '0 4px 12px rgba(154, 125, 82, 0.3)'
-                          dragImage.innerText = `📦 Moving ${selectedPhotoIds.length} photos`
-                          document.body.appendChild(dragImage)
-                          e.dataTransfer.setDragImage(dragImage, 10, 10)
-                          setTimeout(() => {
-                            if (document.body.contains(dragImage)) {
-                              document.body.removeChild(dragImage)
-                            }
-                          }, 0)
-                        }
-                      }}
-                      onDragEnd={() => {
-                        setDraggingId(null)
-                        setInsertionIndex(null)
-                        setInsertionTab(null)
-                      }}
-                      onClick={() => {
-                        if (selectedPhotoIds.length > 0) {
-                          handlePhotoSelect(photo)
-                        }
-                      }}
-                      style={{
-                        position: 'relative', 
-                        aspectRatio: '1', 
-                        borderRadius: '8px', 
-                        overflow: 'hidden',
-                        border: isSelected ? '2.5px solid #9a7d52' : '1px solid #ece9e4',
-                        background: '#fcfbf9',
-                        cursor: isDragging ? 'grabbing' : 'grab',
-                        opacity: isDragging ? 0.3 : (isAttachedSelected ? 0.45 : 1),
-                        transition: 'border-color 0.2s, opacity 0.2s',
-                      }}
-                      animate={{
-                        scale: isDragging ? 0.98 : (isAttachedSelected ? 0.96 : 1),
-                      }}
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+                      style={{ position: 'relative', aspectRatio: '1' }}
                     >
-                      <img src={photo.file_url_thumb || photo.file_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
-                      
                       {/* Visual insertion dotted line before card */}
                       {insertionTab === tab && insertionIndex === subIdx && draggingId !== null && (
                         <div style={{
@@ -1281,131 +1227,190 @@ export default function AdminStoryEditorPage() {
                         </div>
                       )}
 
-                      {photo.is_cover && (
-                        <div style={{ position: 'absolute', top: '6px', left: '6px', background: '#9a7d52', borderRadius: '4px', padding: '2px 6px', fontSize: '0.5625rem', color: '#fff', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, zIndex: 11 }}>
-                          Cover
-                        </div>
-                      )}
-
-                      {/* Selection Checkbox Bubble */}
-                      <div 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePhotoSelect(photo);
+                      <motion.div 
+                        layout
+                        draggable
+                        onDragStart={(e: any) => {
+                          setDraggingId(photo.id)
+                          if (selectedPhotoIds.includes(photo.id) && selectedPhotoIds.length > 1) {
+                            const dragImage = document.createElement('div')
+                            dragImage.style.background = '#9a7d52'
+                            dragImage.style.color = '#fff'
+                            dragImage.style.padding = '6px 14px'
+                            dragImage.style.borderRadius = '20px'
+                            dragImage.style.fontFamily = 'var(--font-sans), sans-serif'
+                            dragImage.style.fontSize = '0.75rem'
+                            dragImage.style.fontWeight = '600'
+                            dragImage.style.position = 'absolute'
+                            dragImage.style.top = '-1000px'
+                            dragImage.style.zIndex = '99999'
+                            dragImage.style.boxShadow = '0 4px 12px rgba(154, 125, 82, 0.3)'
+                            dragImage.innerText = `📦 Moving ${selectedPhotoIds.length} photos`
+                            document.body.appendChild(dragImage)
+                            e.dataTransfer.setDragImage(dragImage, 10, 10)
+                            setTimeout(() => {
+                              if (document.body.contains(dragImage)) {
+                                document.body.removeChild(dragImage)
+                              }
+                            }, 0)
+                          }
+                        }}
+                        onDragEnd={() => {
+                          setDraggingId(null)
+                          setInsertionIndex(null)
+                          setInsertionTab(null)
+                        }}
+                        onClick={() => {
+                          if (selectedPhotoIds.length > 0) {
+                            handlePhotoSelect(photo)
+                          }
                         }}
                         style={{
-                          position: 'absolute',
-                          top: '8px',
-                          right: '8px',
-                          width: '20px',
-                          height: '20px',
-                          borderRadius: '50%',
-                          border: isSelected 
-                            ? '1px solid #9a7d52' 
-                            : '1px solid rgba(28, 26, 24, 0.25)',
-                          background: isSelected 
-                            ? '#9a7d52' 
-                            : 'rgba(255, 255, 255, 0.85)',
-                          backdropFilter: 'blur(4px)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer',
-                          zIndex: 12,
-                          transition: 'all 0.2s ease',
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                          width: '100%',
+                          height: '100%',
+                          position: 'relative', 
+                          borderRadius: '8px', 
+                          overflow: 'hidden',
+                          border: isSelected ? '2.5px solid #9a7d52' : '1px solid #ece9e4',
+                          background: '#fcfbf9',
+                          cursor: isDragging ? 'grabbing' : 'grab',
+                          opacity: isDragging ? 0.3 : (isAttachedSelected ? 0.45 : 1),
+                          transition: 'border-color 0.2s, opacity 0.2s',
                         }}
+                        animate={{
+                          scale: isDragging ? 0.98 : (isAttachedSelected ? 0.96 : 1),
+                        }}
+                        whileHover={{ scale: 1.02 }}
+                        transition={{ type: 'spring', stiffness: 350, damping: 28 }}
                       >
-                        {isSelected && (
-                          <svg width="10" height="8" viewBox="0 0 10 8" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="1.5 4 4 6.5 8.5 1.5" />
-                          </svg>
+                        <img src={photo.file_url_thumb || photo.file_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
+                        
+                        {photo.is_cover && (
+                          <div style={{ position: 'absolute', top: '6px', left: '6px', background: '#9a7d52', borderRadius: '4px', padding: '2px 6px', fontSize: '0.5625rem', color: '#fff', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, zIndex: 11 }}>
+                            Cover
+                          </div>
                         )}
-                      </div>
-                      
-                      {/* Premium Glassmorphism Bottom Action Bar */}
-                      <div style={{ 
-                        position: 'absolute', 
-                        bottom: 0, 
-                        left: 0, 
-                        right: 0, 
-                        background: 'rgba(28, 26, 24, 0.82)', 
-                        backdropFilter: 'blur(6px)',
-                        padding: '0.375rem 0.5rem', 
-                        display: 'flex', 
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        zIndex: 10
-                      }}
-                        onClick={e => e.stopPropagation()}
-                      >
-                        <div style={{ display: 'flex', gap: '0.35rem' }}>
-                          {/* Move Left */}
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); movePhoto(photo.id, 'left'); }}
-                            disabled={subIdx === 0}
-                            title="Move Left"
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              cursor: subIdx === 0 ? 'not-allowed' : 'pointer',
-                              color: subIdx === 0 ? 'rgba(255,255,255,0.25)' : '#fff',
-                              fontSize: '0.75rem',
-                              padding: '2px 4px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              transition: 'color 0.2s',
-                              fontWeight: 600
-                            }}
-                          >
-                            ←
-                          </button>
-                          
-                          {/* Move Right */}
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); movePhoto(photo.id, 'right'); }}
-                            disabled={subIdx === tabPhotos.length - 1}
-                            title="Move Right"
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              cursor: subIdx === tabPhotos.length - 1 ? 'not-allowed' : 'pointer',
-                              color: subIdx === tabPhotos.length - 1 ? 'rgba(255,255,255,0.25)' : '#fff',
-                              fontSize: '0.75rem',
-                              padding: '2px 4px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              transition: 'color 0.2s',
-                              fontWeight: 600
-                            }}
-                          >
-                            →
-                          </button>
-                        </div>
 
-                        {/* Delete */}
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); deletePhoto(photo.id); }}
-                          title="Delete Photo"
+                        {/* Selection Checkbox Bubble */}
+                        <div 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePhotoSelect(photo);
+                          }}
                           style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            color: '#fca5a5',
-                            fontSize: '0.6875rem',
-                            fontWeight: 600,
-                            padding: '2px 4px',
+                            position: 'absolute',
+                            top: '8px',
+                            right: '8px',
+                            width: '20px',
+                            height: '20px',
+                            borderRadius: '50%',
+                            border: isSelected 
+                              ? '1px solid #9a7d52' 
+                              : '1px solid rgba(28, 26, 24, 0.25)',
+                            background: isSelected 
+                              ? '#9a7d52' 
+                              : 'rgba(255, 255, 255, 0.85)',
+                            backdropFilter: 'blur(4px)',
                             display: 'flex',
                             alignItems: 'center',
-                            transition: 'color 0.2s'
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            zIndex: 12,
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
                           }}
                         >
-                          Delete
-                        </button>
-                      </div>
-                    </motion.div>
+                          {isSelected && (
+                            <svg width="10" height="8" viewBox="0 0 10 8" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="1.5 4 4 6.5 8.5 1.5" />
+                            </svg>
+                          )}
+                        </div>
+                        
+                        {/* Premium Glassmorphism Bottom Action Bar */}
+                        <div style={{ 
+                          position: 'absolute', 
+                          bottom: 0, 
+                          left: 0, 
+                          right: 0, 
+                          background: 'rgba(28, 26, 24, 0.82)', 
+                          backdropFilter: 'blur(6px)',
+                          padding: '0.375rem 0.5rem', 
+                          display: 'flex', 
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          zIndex: 10
+                        }}
+                          onClick={e => e.stopPropagation()}
+                        >
+                          <div style={{ display: 'flex', gap: '0.35rem' }}>
+                            {/* Move Left */}
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); movePhoto(photo.id, 'left'); }}
+                              disabled={subIdx === 0}
+                              title="Move Left"
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                cursor: subIdx === 0 ? 'not-allowed' : 'pointer',
+                                color: subIdx === 0 ? 'rgba(255,255,255,0.25)' : '#fff',
+                                fontSize: '0.75rem',
+                                padding: '2px 4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'color 0.2s',
+                                fontWeight: 600
+                              }}
+                            >
+                              ←
+                            </button>
+                            
+                            {/* Move Right */}
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); movePhoto(photo.id, 'right'); }}
+                              disabled={subIdx === tabPhotos.length - 1}
+                              title="Move Right"
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                cursor: subIdx === tabPhotos.length - 1 ? 'not-allowed' : 'pointer',
+                                color: subIdx === tabPhotos.length - 1 ? 'rgba(255,255,255,0.25)' : '#fff',
+                                fontSize: '0.75rem',
+                                padding: '2px 4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'color 0.2s',
+                                fontWeight: 600
+                              }}
+                            >
+                              →
+                            </button>
+                          </div>
+
+                          {/* Delete */}
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); deletePhoto(photo.id); }}
+                            title="Delete Photo"
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              color: '#fca5a5',
+                              fontSize: '0.6875rem',
+                              fontWeight: 600,
+                              padding: '2px 4px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              transition: 'color 0.2s'
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </motion.div>
+                    </div>
                   )
                 })}
               </div>
