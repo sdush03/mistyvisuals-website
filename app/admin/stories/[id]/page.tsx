@@ -28,6 +28,7 @@ export default function AdminStoryEditorPage() {
   const [activeDragOverTab, setActiveDragOverTab] = useState<string | null>(null)
   
   const [draggingId, setDraggingId] = useState<number | null>(null)
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<number[]>([])
   const [catDropdownOpen, setCatDropdownOpen] = useState(false)
   const [tabs, setTabs] = useState<string[]>([])
   const [newCat, setNewCat] = useState('')
@@ -223,6 +224,116 @@ export default function AdminStoryEditorPage() {
         order: finalPhotos.map(p => ({ id: p.id, display_order: p.display_order }))
       })
     })
+  }
+
+  const areSelectedAdjacent = (tabPhotos: Photo[]): boolean => {
+    const tabSelectedIds = selectedPhotoIds.filter(id => tabPhotos.some(p => p.id === id))
+    if (tabSelectedIds.length <= 1) return true
+    const indices = tabPhotos
+      .map((p, idx) => ({ id: p.id, idx }))
+      .filter(item => tabSelectedIds.includes(item.id))
+      .map(item => item.idx)
+      .sort((a, b) => a - b)
+    
+    for (let i = 0; i < indices.length - 1; i++) {
+      if (indices[i + 1] - indices[i] !== 1) return false
+    }
+    return true
+  }
+
+  const handlePhotoSelect = (photo: Photo) => {
+    setSelectedPhotoIds(prev => {
+      if (prev.length === 0) return [photo.id]
+      const firstSelected = photos.find(p => p.id === prev[0])
+      const sameTab = firstSelected && (
+        (firstSelected.tab_name || 'All') === (photo.tab_name || 'All')
+      )
+      if (sameTab) {
+        return prev.includes(photo.id) 
+          ? prev.filter(id => id !== photo.id) 
+          : [...prev, photo.id]
+      } else {
+        return [photo.id]
+      }
+    })
+  }
+
+  const handlePhotoDrop = async (targetPhotoId: number, tabPhotos: Photo[]) => {
+    if (draggingId === null || draggingId === targetPhotoId) return
+
+    const isDraggingSelectedGroup = selectedPhotoIds.includes(draggingId)
+
+    if (isDraggingSelectedGroup) {
+      if (!areSelectedAdjacent(tabPhotos)) {
+        alert('Resequencing multiple photos together is supported only for adjacent selections.')
+        setDraggingId(null)
+        return
+      }
+
+      const groupItems = photos.filter(p => selectedPhotoIds.includes(p.id))
+      const remainingItems = photos.filter(p => !selectedPhotoIds.includes(p.id))
+      
+      const targetIdxInRemaining = remainingItems.findIndex(p => p.id === targetPhotoId)
+      if (targetIdxInRemaining === -1) return
+
+      const updatedPhotos = [...remainingItems]
+      updatedPhotos.splice(targetIdxInRemaining, 0, ...groupItems)
+
+      const finalPhotos = updatedPhotos.map((p, i) => ({ ...p, display_order: i }))
+      setPhotos(finalPhotos)
+      setSelectedPhotoIds([])
+      setDraggingId(null)
+
+      await apiFetch(`/api/website/stories/${id}/photos/reorder`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order: finalPhotos.map(p => ({ id: p.id, display_order: p.display_order }))
+        })
+      })
+    } else {
+      const activePhotos = [...photos]
+      const fromIdx = activePhotos.findIndex(p => p.id === draggingId)
+      const toIdx = activePhotos.findIndex(p => p.id === targetPhotoId)
+      if (fromIdx === -1 || toIdx === -1) return
+
+      const updatedPhotos = [...photos]
+      const [movedItem] = updatedPhotos.splice(fromIdx, 1)
+      updatedPhotos.splice(toIdx, 0, movedItem)
+
+      const finalPhotos = updatedPhotos.map((p, i) => ({ ...p, display_order: i }))
+      setPhotos(finalPhotos)
+      setDraggingId(null)
+
+      await apiFetch(`/api/website/stories/${id}/photos/reorder`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order: finalPhotos.map(p => ({ id: p.id, display_order: p.display_order }))
+        })
+      })
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedPhotoIds.length === 0) return
+    if (!confirm(`Are you sure you want to delete the ${selectedPhotoIds.length} selected photos?`)) return
+
+    setSaving(true)
+    try {
+      await Promise.all(
+        selectedPhotoIds.map(photoId => 
+          apiFetch(`/api/website/story-photos/${photoId}`, { method: 'DELETE' })
+        )
+      )
+      setPhotos(prev => prev.filter(p => !selectedPhotoIds.includes(p.id)))
+      setSelectedPhotoIds([])
+    } catch (err) {
+      console.error('Failed to execute bulk deletion:', err)
+      alert('Failed to delete some photos. Please reload and try again.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   // Determine dirty state (modified but unsaved changes)
@@ -757,33 +868,158 @@ export default function AdminStoryEditorPage() {
               </div>
             )}
 
+            {/* Bulk Actions Bar */}
+            {selectedPhotoIds.length > 0 && tabPhotos.some(p => selectedPhotoIds.includes(p.id)) && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  background: 'rgba(28, 26, 24, 0.92)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '8px',
+                  padding: '0.75rem 1.25rem',
+                  marginBottom: '1.25rem',
+                  color: '#fff',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                  zIndex: 20,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.8125rem' }}>
+                  <span style={{ fontWeight: 600, color: '#a39274' }}>
+                    {selectedPhotoIds.length} {selectedPhotoIds.length === 1 ? 'photo' : 'photos'} selected
+                  </span>
+                  <span style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.2)' }} />
+                  <span style={{ color: '#ccc', fontSize: '0.75rem' }}>
+                    {areSelectedAdjacent(tabPhotos) 
+                      ? '✓ Contiguous adjacent block (You can drag-reorder them together)' 
+                      : '⚠ Non-adjacent block (Group drag-reorder disabled; select adjacent photos to drag together)'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  <button
+                    onClick={handleBulkDelete}
+                    className="admin-btn"
+                    style={{
+                      background: '#ef4444',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '0.4rem 1rem',
+                      borderRadius: '6px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'background 0.2s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#dc2626'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#ef4444'}
+                  >
+                    Delete Selected
+                  </button>
+                  <button
+                    onClick={() => setSelectedPhotoIds([])}
+                    className="admin-btn"
+                    style={{
+                      background: 'rgba(255,255,255,0.1)',
+                      color: '#fff',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      padding: '0.4rem 1rem',
+                      borderRadius: '6px',
+                      fontSize: '0.75rem',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
             {/* Premium Reordering photo grids */}
             {tabPhotos.length > 0 ? (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1rem' }}>
                 {tabPhotos.map((photo, subIdx) => {
+                  const isSelected = selectedPhotoIds.includes(photo.id)
+                  const isDragging = draggingId === photo.id
                   return (
                     <motion.div 
                       layout
                       key={photo.id}
+                      draggable
+                      onDragStart={() => setDraggingId(photo.id)}
+                      onDragOver={e => e.preventDefault()}
+                      onDrop={() => handlePhotoDrop(photo.id, tabPhotos)}
+                      onDragEnd={() => setDraggingId(null)}
+                      onClick={() => {
+                        if (selectedPhotoIds.length > 0) {
+                          handlePhotoSelect(photo)
+                        }
+                      }}
                       style={{
                         position: 'relative', 
                         aspectRatio: '1', 
                         borderRadius: '8px', 
                         overflow: 'hidden',
-                        border: '1px solid #ece9e4',
+                        border: isSelected ? '2.5px solid #9a7d52' : '1px solid #ece9e4',
                         background: '#fcfbf9',
-                        transition: 'border-color 0.2s',
+                        cursor: isDragging ? 'grabbing' : 'grab',
+                        opacity: isDragging ? 0.4 : 1,
+                        transition: 'border-color 0.2s, opacity 0.2s',
                       }}
                       whileHover={{ scale: 1.02 }}
                       transition={{ type: 'spring', stiffness: 350, damping: 28 }}
                     >
-                      <img src={photo.file_url_thumb || photo.file_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={photo.file_url_thumb || photo.file_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
                       
                       {photo.is_cover && (
                         <div style={{ position: 'absolute', top: '6px', left: '6px', background: '#9a7d52', borderRadius: '4px', padding: '2px 6px', fontSize: '0.5625rem', color: '#fff', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, zIndex: 11 }}>
                           Cover
                         </div>
                       )}
+
+                      {/* Selection Checkbox Bubble */}
+                      <div 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePhotoSelect(photo);
+                        }}
+                        style={{
+                          position: 'absolute',
+                          top: '8px',
+                          right: '8px',
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '50%',
+                          border: isSelected 
+                            ? '1px solid #9a7d52' 
+                            : '1px solid rgba(28, 26, 24, 0.25)',
+                          background: isSelected 
+                            ? '#9a7d52' 
+                            : 'rgba(255, 255, 255, 0.85)',
+                          backdropFilter: 'blur(4px)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          zIndex: 12,
+                          transition: 'all 0.2s ease',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                        }}
+                      >
+                        {isSelected && (
+                          <svg width="10" height="8" viewBox="0 0 10 8" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="1.5 4 4 6.5 8.5 1.5" />
+                          </svg>
+                        )}
+                      </div>
                       
                       {/* Premium Glassmorphism Bottom Action Bar */}
                       <div style={{ 
@@ -798,7 +1034,9 @@ export default function AdminStoryEditorPage() {
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         zIndex: 10
-                      }}>
+                      }}
+                        onClick={e => e.stopPropagation()}
+                      >
                         <div style={{ display: 'flex', gap: '0.35rem' }}>
                           {/* Move Left */}
                           <button 
