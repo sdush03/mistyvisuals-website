@@ -72,7 +72,8 @@ export default async function HomePage() {
               "addressCountry": "IN"
             },
             "sameAs": [
-              "https://www.instagram.com/weddingsbymistyvisuals"
+              "https://www.instagram.com/weddingsbymistyvisuals",
+              "https://www.youtube.com/@weddingsbymistyvisuals"
             ]
           })
         }}
