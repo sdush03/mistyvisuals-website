@@ -49,6 +49,12 @@ export default async function HomePage() {
   const philSection = sections?.find((s: any) => s.key === 'philosophy')
   const philContent = philSection?.content || {}
 
+  const SITE_URL = 'https://www.mistyvisuals.com'
+  const heroImage = hero 
+    ? (hero.media_type === 'image' ? hero.media_url : hero.poster_url || '/philosophy-detail.jpg') 
+    : '/philosophy-detail.jpg'
+  const absoluteHeroImage = heroImage.startsWith('http') ? heroImage : `${SITE_URL}${heroImage}`
+
   return (
     <>
       <script
@@ -64,7 +70,7 @@ export default async function HomePage() {
               "Misty Visuals Photography",
               "Misty Visuals Wedding Films"
             ],
-            "image": "https://www.mistyvisuals.com/philosophy-detail.jpg",
+            "image": absoluteHeroImage,
             "logo": "https://www.mistyvisuals.com/logo-white.png",
             "url": "https://www.mistyvisuals.com",
             "telephone": "+91-7560008899",
