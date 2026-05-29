@@ -64,7 +64,8 @@ export default async function HomePage() {
               "Misty Visuals Photography",
               "Misty Visuals Wedding Films"
             ],
-            "image": "https://www.mistyvisuals.com/logo-white.png",
+            "image": "https://www.mistyvisuals.com/philosophy-detail.jpg",
+            "logo": "https://www.mistyvisuals.com/logo-white.png",
             "url": "https://www.mistyvisuals.com",
             "telephone": "+91-7560008899",
             "email": "info@mistyvisuals.com",
