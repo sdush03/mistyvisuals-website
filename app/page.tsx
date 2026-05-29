@@ -26,11 +26,11 @@ export async function generateMetadata(): Promise<Metadata> {
   const ogUrl = ogImage ? `/api/og/home?img=${encodeURIComponent(ogImage)}` : '/api/og/home'
 
   return {
-    title: 'Misty Visuals — Luxury Wedding Photography & Films',
-    description: 'Soft editorial luxury wedding photography and cinematic films across India and worldwide.',
+    title: 'Weddings by Misty Visuals — Luxury Wedding Photography & Films',
+    description: 'Luxury wedding photography and cinematic films by Weddings by Misty Visuals. Creative wedding storytellers based in Gurgaon, India and available worldwide.',
     openGraph: {
-      title: 'Misty Visuals — Luxury Wedding Photography & Films',
-      description: 'Soft editorial luxury wedding photography and cinematic films across India and worldwide.',
+      title: 'Weddings by Misty Visuals — Luxury Wedding Photography & Films',
+      description: 'Luxury wedding photography and cinematic films by Weddings by Misty Visuals. Creative wedding storytellers based in Gurgaon, India and available worldwide.',
       type: 'website',
       images: [{ url: ogUrl, width: 1200, height: 630, alt: 'Misty Visuals' }],
     },
@@ -58,6 +58,12 @@ export default async function HomePage() {
             "@context": "https://schema.org",
             "@type": "ProfessionalService",
             "name": "Misty Visuals",
+            "alternateName": [
+              "Weddings by Misty Visuals",
+              "Misty Visuals Gurgaon",
+              "Misty Visuals Photography",
+              "Misty Visuals Wedding Films"
+            ],
             "image": "https://www.mistyvisuals.com/logo-white.png",
             "url": "https://www.mistyvisuals.com",
             "telephone": "+91-7560008899",
@@ -65,10 +71,10 @@ export default async function HomePage() {
             "priceRange": "$$$$",
             "address": {
               "@type": "PostalAddress",
-              "streetAddress": "415 Basement, Sector 40",
+              "streetAddress": "415 Basement, Urban Estate, Sector 40",
               "addressLocality": "Gurugram",
               "addressRegion": "Haryana",
-              "postalCode": "122001",
+              "postalCode": "122003",
               "addressCountry": "IN"
             },
             "sameAs": [
