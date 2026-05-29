@@ -51,6 +51,32 @@ export default async function HomePage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ProfessionalService",
+            "name": "Misty Visuals",
+            "image": "https://www.mistyvisuals.com/logo-white.png",
+            "url": "https://www.mistyvisuals.com",
+            "telephone": "+91-7560008899",
+            "email": "info@mistyvisuals.com",
+            "priceRange": "$$$$",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "415 Basement, Sector 40",
+              "addressLocality": "Gurugram",
+              "addressRegion": "Haryana",
+              "postalCode": "122001",
+              "addressCountry": "IN"
+            },
+            "sameAs": [
+              "https://www.instagram.com/weddingsbymistyvisuals"
+            ]
+          })
+        }}
+      />
       <NavBar />
       <main>
         {sections?.filter((s: any) => s.is_visible).map((s: any) => {
