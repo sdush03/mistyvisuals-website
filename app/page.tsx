@@ -74,7 +74,7 @@ export default async function HomePage() {
               "streetAddress": "415 Basement, Urban Estate, Sector 40",
               "addressLocality": "Gurugram",
               "addressRegion": "Haryana",
-              "postalCode": "122003",
+              "postalCode": "122001",
               "addressCountry": "IN"
             },
             "sameAs": [
