@@ -146,17 +146,9 @@ export default function TestimonialsSection({ testimonials, heading = 'TESTIMONI
             gap: 1.25rem;
             margin-bottom: 2.5rem !important;
           }
-          .testi-header p {
-            font-size: 15px !important;
-            letter-spacing: 0.15em !important;
-          }
           .testi-card {
             align-items: center !important;
             text-align: center !important;
-          }
-          .testi-card cite {
-            font-size: 12px !important;
-            letter-spacing: 0.08em !important;
           }
           .testi-quote {
             font-size: 13.5px !important;

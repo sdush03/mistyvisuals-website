@@ -103,21 +103,9 @@ a { color: inherit; text-decoration: none; }
 }
 
 @media (max-width: 640px) {
-  .mv-title-hero {
-    font-size: 32px !important;
-    line-height: 1.2 !important;
-  }
-  .mv-heading {
-    font-size: 20px !important;
-    line-height: 1.15 !important;
-  }
   .mv-body {
-    font-size: 13.5px !important;
-    line-height: 1.65 !important;
-  }
-  .mv-label {
-    font-size: 11px !important;
-    letter-spacing: 0.25em !important;
+    font-size: 0.84375rem; /* ~13.5px on mobile */
+    line-height: 1.6;
   }
 }
 
