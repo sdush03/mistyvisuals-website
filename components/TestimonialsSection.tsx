@@ -101,7 +101,7 @@ export default function TestimonialsSection({ testimonials, heading = 'TESTIMONI
                 textTransform: 'uppercase',
                 color: 'var(--ink)',
               }}>
-                {t.client_name}
+                — {t.client_name}
               </cite>
             </div>
           ))}
