@@ -153,8 +153,8 @@ export default function TestimonialsSection({ testimonials, heading = 'TESTIMONI
           .testi-quote {
             font-size: 13.5px !important;
             line-height: 1.7em !important;
-            text-align: center !important;
-            text-align-last: center !important;
+            text-align: justify !important;
+            text-align-last: left !important;
             padding: 0 0.5rem !important;
             margin-bottom: 1.25rem !important;
           }
