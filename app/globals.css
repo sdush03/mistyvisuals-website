@@ -99,6 +99,13 @@ a { color: inherit; text-decoration: none; }
   }
 }
 
+@media (max-width: 640px) {
+  .mv-body {
+    font-size: 0.84375rem; /* ~13.5px on mobile */
+    line-height: 1.6;
+  }
+}
+
 /* Nav links — Morgan style */
 .t-nav {
   font-family: var(--font-sans);
