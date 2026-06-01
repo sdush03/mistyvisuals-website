@@ -130,6 +130,7 @@ export default function DailyVisitsChart({ data }: Props) {
           width="100%" 
           height={height} 
           viewBox={`0 0 ${width} ${height}`} 
+          preserveAspectRatio="none"
           style={svgStyle}
           onMouseMove={handleMouseMove}
           onMouseLeave={() => setActiveIdx(null)}
