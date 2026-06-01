@@ -77,7 +77,16 @@ export default function DailyVisitsChart({ data }: Props) {
 
   const handleMouseMove = (e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
     const rect = e.currentTarget.getBoundingClientRect()
-    const svgX = (e.clientX - rect.left) * (width / rect.width)
+    
+    let svgX = 0
+    if (rect.width >= width) {
+      // Desktop: Chart retains fixed 800px width and is horizontally centered with gutters
+      const gutter = (rect.width - width) / 2
+      svgX = e.clientX - rect.left - gutter
+    } else {
+      // Mobile: Chart scales down below 800px to fit client viewport
+      svgX = (e.clientX - rect.left) * (width / rect.width)
+    }
 
     let closestIdx = 0
     let minDist = Infinity
@@ -130,7 +139,6 @@ export default function DailyVisitsChart({ data }: Props) {
           width="100%" 
           height={height} 
           viewBox={`0 0 ${width} ${height}`} 
-          preserveAspectRatio="none"
           style={svgStyle}
           onMouseMove={handleMouseMove}
           onMouseLeave={() => setActiveIdx(null)}
