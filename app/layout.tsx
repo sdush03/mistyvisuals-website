@@ -14,6 +14,10 @@ export const metadata: Metadata = {
     locale: 'en_IN',
   },
   robots: { index: true, follow: true },
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+  },
 }
 
 export const viewport: Viewport = {
