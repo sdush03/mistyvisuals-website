@@ -23,6 +23,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'Films by Misty Visuals',
     description: 'Luxury wedding films by Misty Visuals. Discover emotional, timeless, and immersive cinematic wedding stories captured worldwide.',
+    alternates: {
+      canonical: '/films',
+    },
     openGraph: {
       title: 'Films by Misty Visuals',
       description: 'Luxury wedding films by Misty Visuals. Discover emotional, timeless, and immersive cinematic wedding stories captured worldwide.',

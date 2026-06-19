@@ -34,6 +34,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title: story.title,
       description: desc || 'Wedding photography by Misty Visuals.',
+      alternates: {
+        canonical: `/stories/${slug}`,
+      },
       openGraph: {
         title: story.title,
         description: desc || 'Wedding photography by Misty Visuals.',
@@ -42,7 +45,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     }
   } catch {
-    return { title: 'Story | Misty Visuals' }
+    return { 
+      title: 'Story | Misty Visuals',
+      alternates: {
+        canonical: `/stories/${slug}`,
+      }
+    }
   }
 }
 

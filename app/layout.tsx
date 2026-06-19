@@ -14,6 +14,9 @@ export const metadata: Metadata = {
     locale: 'en_IN',
   },
   robots: { index: true, follow: true },
+  alternates: {
+    canonical: '/',
+  },
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',

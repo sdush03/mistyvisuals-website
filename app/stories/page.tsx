@@ -33,6 +33,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'Misty Visuals Portfolio',
     description: 'Luxury wedding photography portfolio by Misty Visuals. Discover soft editorial, candid, and emotional love stories captured across India and worldwide.',
+    alternates: {
+      canonical: '/stories',
+    },
     openGraph: {
       title: 'Misty Visuals Portfolio',
       description: 'Luxury wedding photography portfolio by Misty Visuals. Discover soft editorial, candid, and emotional love stories captured across India and worldwide.',
