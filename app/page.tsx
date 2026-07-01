@@ -26,13 +26,10 @@ export async function generateMetadata(): Promise<Metadata> {
   const ogUrl = ogImage ? `/api/og/home?img=${encodeURIComponent(ogImage)}` : '/api/og/home'
 
   return {
-    title: 'Misty Visuals — Luxury Wedding Photography & Films',
+    title: 'Weddings by Misty Visuals — Luxury Wedding Photography & Films',
     description: 'Luxury wedding photography and cinematic films by Weddings by Misty Visuals. Creative wedding storytellers based in Gurgaon, India and available worldwide.',
-    alternates: {
-      canonical: '/',
-    },
     openGraph: {
-      title: 'Misty Visuals — Luxury Wedding Photography & Films',
+      title: 'Weddings by Misty Visuals — Luxury Wedding Photography & Films',
       description: 'Luxury wedding photography and cinematic films by Weddings by Misty Visuals. Creative wedding storytellers based in Gurgaon, India and available worldwide.',
       type: 'website',
       images: [{ url: ogUrl, width: 1200, height: 630, alt: 'Misty Visuals' }],
