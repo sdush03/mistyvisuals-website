@@ -60,35 +60,75 @@ export default async function HomePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "ProfessionalService",
-            "name": "Misty Visuals",
-            "alternateName": [
-              "Weddings by Misty Visuals",
-              "Misty Visuals Gurgaon",
-              "Misty Visuals Photography",
-              "Misty Visuals Wedding Films"
-            ],
-            "image": absoluteHeroImage,
-            "logo": "https://www.mistyvisuals.com/logo-white.png",
-            "url": "https://www.mistyvisuals.com",
-            "telephone": "+91-7560008899",
-            "email": "info@mistyvisuals.com",
-            "priceRange": "$$$$",
-            "address": {
-              "@type": "PostalAddress",
-              "streetAddress": "415 Basement, Urban Estate, Sector 40",
-              "addressLocality": "Gurugram",
-              "addressRegion": "Haryana",
-              "postalCode": "122001",
-              "addressCountry": "IN"
+          __html: JSON.stringify([
+            {
+              "@context": "https://schema.org",
+              "@type": "ProfessionalService",
+              "name": "Misty Visuals",
+              "alternateName": [
+                "Weddings by Misty Visuals",
+                "Misty Visuals Gurgaon",
+                "Misty Visuals Photography",
+                "Misty Visuals Wedding Films"
+              ],
+              "image": absoluteHeroImage,
+              "logo": "https://www.mistyvisuals.com/logo-white.png",
+              "url": "https://www.mistyvisuals.com",
+              "telephone": "+91-7560008899",
+              "email": "info@mistyvisuals.com",
+              "priceRange": "$$$$",
+              "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "415 Basement, Urban Estate, Sector 40",
+                "addressLocality": "Gurugram",
+                "addressRegion": "Haryana",
+                "postalCode": "122001",
+                "addressCountry": "IN"
+              },
+              "sameAs": [
+                "https://www.instagram.com/weddingsbymistyvisuals",
+                "https://www.youtube.com/@weddingsbymistyvisuals"
+              ]
             },
-            "sameAs": [
-              "https://www.instagram.com/weddingsbymistyvisuals",
-              "https://www.youtube.com/@weddingsbymistyvisuals"
-            ]
-          })
+            {
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "Misty Visuals",
+              "url": "https://www.mistyvisuals.com",
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": "https://www.mistyvisuals.com/stories?q={search_term_string}",
+                "query-input": "required name=search_term_string"
+              }
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "ItemList",
+              "itemListElement": [
+                {
+                  "@type": "SiteNavigationElement",
+                  "position": 1,
+                  "name": "Portfolio",
+                  "description": "Explore the luxury wedding photography portfolio and love stories by Misty Visuals.",
+                  "url": "https://www.mistyvisuals.com/stories"
+                },
+                {
+                  "@type": "SiteNavigationElement",
+                  "position": 2,
+                  "name": "Films",
+                  "description": "Watch cinematic destination wedding films captured by Weddings by Misty Visuals.",
+                  "url": "https://www.mistyvisuals.com/films"
+                },
+                {
+                  "@type": "SiteNavigationElement",
+                  "position": 3,
+                  "name": "Enquire / Contact",
+                  "description": "Get in touch with us to discuss dates, availability, and pricing packages for your wedding.",
+                  "url": "https://www.mistyvisuals.com/contact"
+                }
+              ]
+            }
+          ])
         }}
       />
       <NavBar />
