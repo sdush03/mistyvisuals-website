@@ -68,14 +68,22 @@ export default function Footer() {
             <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
               {[
                 ['Home', '/'],
+                ['My Circle', 'https://mycircle.mistyvisuals.com/'],
                 ['Portfolio', '/stories'],
                 ['Films', '/films'],
                 ['Testimonials', '/#testimonials'],
                 ['About', '/about'],
                 ['Enquire', '/contact'],
-              ].map(([label, href]) => (
-                <Link key={href} href={href} style={navLink}>{label}</Link>
-              ))}
+              ].map(([label, href]) => {
+                if (href.startsWith('http')) {
+                  return (
+                    <a key={href} href={href} target="_blank" rel="noopener noreferrer" style={navLink}>
+                      {label}
+                    </a>
+                  )
+                }
+                return <Link key={href} href={href} style={navLink}>{label}</Link>
+              })}
             </nav>
           </div>
 

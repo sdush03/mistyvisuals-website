@@ -31,6 +31,7 @@ const nextConfig: NextConfig = {
       { protocol: 'http',  hostname: '127.0.0.1' },
       { protocol: 'https', hostname: 'mistyvisuals.com' },
       { protocol: 'https', hostname: '*.mistyvisuals.com' },
+      { protocol: 'https', hostname: '*.r2.dev' },
     ],
     formats: ['image/webp'],
   },
