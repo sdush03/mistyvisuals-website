@@ -424,6 +424,7 @@ export default function StoryGallery({ photos, tabs, films = [], reels = [] }: P
                         lineHeight: 0,
                         aspectRatio: photo._gridAspect || '2/3',
                         position: 'relative',
+                        background: photo.blur_data_url ? `url(${photo.blur_data_url}) no-repeat center/cover` : 'var(--linen-dark)',
                       }}
                       className="gallery-item"
                     >
@@ -434,12 +435,22 @@ export default function StoryGallery({ photos, tabs, films = [], reels = [] }: P
                         alt=""
                         loading={globalIdx < 4 ? 'eager' : 'lazy'}
                         decoding="async"
+                        onLoad={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.opacity = '1';
+                        }}
+                        ref={(el) => {
+                          if (el && el.complete) {
+                            el.style.opacity = '1';
+                          }
+                        }}
                         style={{
                           width: '100%',
                           height: '100%',
                           objectFit: 'cover',
                           display: 'block',
-                          background: photo.blur_data_url ? `url(${photo.blur_data_url}) no-repeat center/cover` : 'var(--linen-dark)',
+                          opacity: 0,
+                          transition: 'opacity 0.7s ease-in-out',
                         }}
                       />
                     </div>
