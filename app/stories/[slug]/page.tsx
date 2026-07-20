@@ -133,23 +133,10 @@ export default async function StoryPage({ params }: Props) {
               textTransform: 'uppercase',
               color: '#fff',
               lineHeight: 1.1,
-              marginBottom: '1rem',
+              marginBottom: '2.5rem',
             }}>
               {story.title}
             </h1>
-            {meta && (
-              <p style={{
-                fontFamily: 'var(--font-sans)',
-                fontSize: 'clamp(0.7rem, 1.1vw, 0.875rem)',
-                fontWeight: 500,
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                color: '#fff',
-                marginBottom: '2.5rem',
-              }}>
-                {meta}
-              </p>
-            )}
 
             {/* Scroll CTA */}
             <a
@@ -221,12 +208,12 @@ export default async function StoryPage({ params }: Props) {
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
             color: 'var(--ink)',
-            marginBottom: '0.5rem'
+            marginBottom: (story.location || story.date || story.subtitle) ? '0.5rem' : '0'
           }}>
             {story.title}
           </h2>
           
-          {story.subtitle && (
+          {(story.location || story.date) && (
             <p style={{
               fontFamily: 'var(--font-sans)',
               fontSize: '0.625rem',
@@ -234,13 +221,13 @@ export default async function StoryPage({ params }: Props) {
               letterSpacing: '0.25em',
               textTransform: 'uppercase',
               color: 'var(--ink-mid)',
-              marginBottom: '0.5rem'
+              marginBottom: story.subtitle ? '0.5rem' : '0'
             }}>
-              {story.subtitle}
+              {[story.location, formatDate(story.date)].filter(Boolean).join('  //  ')}
             </p>
           )}
 
-          {(story.location || story.date) && (
+          {story.subtitle && (
             <p style={{
               fontFamily: 'var(--font-sans)',
               fontSize: '0.625rem',
@@ -250,7 +237,7 @@ export default async function StoryPage({ params }: Props) {
               color: 'var(--ink-mid)',
               marginBottom: '0'
             }}>
-              {[story.location, formatDate(story.date)].filter(Boolean).join('  //  ')}
+              {story.subtitle}
             </p>
           )}
         </div>

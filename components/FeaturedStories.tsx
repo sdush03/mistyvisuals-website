@@ -130,10 +130,23 @@ function StoryCard({ story, priority }: { story: Story; priority: boolean }) {
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
             color: 'var(--ink)',
-            marginBottom: '0.5rem',
+            marginBottom: (story.location || story.subtitle || story.date) ? '0.35rem' : '0',
           }}>
-            {[story.title, story.location].filter(Boolean).join(' || ')}
+            {story.title}
           </h3>
+          {story.location && (
+            <p style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: '0.6875rem',
+              fontWeight: 500,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: 'var(--ink-mid)',
+              marginBottom: (story.subtitle || story.date) ? '0.35rem' : '0',
+            }}>
+              {story.location}
+            </p>
+          )}
           {(story.subtitle || story.date) && (
             <p style={{
               fontFamily: 'var(--font-sans)',
