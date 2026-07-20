@@ -130,7 +130,7 @@ function StoryCard({ story, priority }: { story: Story; priority: boolean }) {
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
             color: 'var(--ink)',
-            marginBottom: (story.location || story.subtitle || story.date) ? '0.35rem' : '0',
+            marginBottom: story.location ? '0.35rem' : '0',
           }}>
             {story.title}
           </h3>
@@ -142,21 +142,8 @@ function StoryCard({ story, priority }: { story: Story; priority: boolean }) {
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
               color: 'var(--ink-mid)',
-              marginBottom: (story.subtitle || story.date) ? '0.35rem' : '0',
             }}>
               {story.location}
-            </p>
-          )}
-          {(story.subtitle || story.date) && (
-            <p style={{
-              fontFamily: 'var(--font-sans)',
-              fontSize: '0.625rem',
-              fontWeight: 400,
-              letterSpacing: '0.15em',
-              textTransform: 'uppercase',
-              color: 'var(--ink-light)',
-            }}>
-              {story.subtitle || formatDate(story.date)}
             </p>
           )}
         </div>
