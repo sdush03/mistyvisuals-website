@@ -66,7 +66,7 @@ export default function HeroSection({ hero, headline, subline }: Props) {
           )}
           <picture>
             {hero.mobile_url && (
-              <source media="(max-width: 767px)" srcSet={hero.mobile_url} type="image/webp" />
+              <source media="(max-width: 767px)" srcSet={hero.mobile_url} />
             )}
             <img
               key={hero.id}

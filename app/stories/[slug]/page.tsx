@@ -77,7 +77,7 @@ export default async function StoryPage({ params }: Props) {
           {story.cover_image_url && (
             <picture>
               {story.cover_image_mobile_url && (
-                <source media="(max-width: 767px)" srcSet={story.cover_image_mobile_url} type="image/webp" />
+                <source media="(max-width: 767px)" srcSet={story.cover_image_mobile_url} />
               )}
               <img
                 src={story.cover_image_url}
