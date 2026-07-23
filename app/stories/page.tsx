@@ -23,9 +23,23 @@ export async function generateMetadata(): Promise<Metadata> {
   let ogImage = ''
 
   try {
-    const homeData = await fetchHomeData()
+    const [stories, homeData] = await Promise.all([fetchStories(), fetchHomeData()])
+
+    // 1st priority: stories section background image set by admin
     const storiesSection = homeData?.sections?.find((s: any) => s.key === 'stories')
-    ogImage = storiesSection?.content?.bgImage || ''
+    if (storiesSection?.content?.bgImage) ogImage = storiesSection.content.bgImage
+
+    // 2nd priority: first featured story's grid/cover image
+    if (!ogImage && stories?.length > 0) {
+      const featured = stories.find((s: any) => s.is_featured && (s.grid_image_url || s.cover_image_url)) || stories.find((s: any) => s.grid_image_url || s.cover_image_url)
+      if (featured) ogImage = featured.grid_image_url || featured.cover_image_url || ''
+    }
+
+    // 3rd priority: homepage hero (last resort)
+    if (!ogImage) {
+      const hero = homeData?.hero
+      if (hero) ogImage = hero.media_type === 'image' ? hero.media_url : hero.poster_url || ''
+    }
   } catch {}
 
   const ogUrl = ogImage ? `/api/og/stories?img=${encodeURIComponent(ogImage)}` : '/api/og/stories'

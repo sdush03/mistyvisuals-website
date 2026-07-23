@@ -11,10 +11,24 @@ export async function generateMetadata(): Promise<Metadata> {
   let ogImage = ''
 
   try {
-    const homeData = await fetchHomeData()
-    const hero = homeData?.hero
-    if (hero) {
-      ogImage = hero.media_type === 'image' ? hero.media_url : hero.poster_url || ''
+    const [films, homeData] = await Promise.all([fetchFilms(), fetchHomeData()])
+
+    // 1st priority: films section background image set by admin
+    const filmsBg = homeData?.sections?.find((s: any) => s.key === 'films')?.content?.bgImage
+    if (filmsBg && /\.(jpe?g|png|webp|gif|avif)$/i.test(filmsBg)) {
+      ogImage = filmsBg
+    }
+
+    // 2nd priority: first featured film's thumbnail
+    if (!ogImage && films?.length > 0) {
+      const featured = films.find((f: any) => f.is_featured && f.thumbnail_url) || films.find((f: any) => f.thumbnail_url)
+      if (featured?.thumbnail_url) ogImage = featured.thumbnail_url
+    }
+
+    // 3rd priority: homepage hero (last resort)
+    if (!ogImage) {
+      const hero = homeData?.hero
+      if (hero) ogImage = hero.media_type === 'image' ? hero.media_url : hero.poster_url || ''
     }
   } catch {}
 
