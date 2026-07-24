@@ -5,10 +5,28 @@ import { useRouter, usePathname } from 'next/navigation'
 
 const OS_URL = (() => {
   const raw = process.env.NEXT_PUBLIC_OS_URL
-  if (raw && raw.startsWith('http')) return raw
+  if (raw && raw.startsWith('http')) {
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && raw.includes('localhost')) {
+      return 'https://os.mistyvisuals.com'
+    }
+    return raw
+  }
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+    return 'https://os.mistyvisuals.com'
+  }
   return 'http://localhost:3000'
 })()
-const API    = process.env.NEXT_PUBLIC_API_URL || ''
+
+const API = (() => {
+  const raw = process.env.NEXT_PUBLIC_API_URL
+  if (raw && raw.startsWith('http')) {
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && raw.includes('localhost')) {
+      return ''
+    }
+    return raw
+  }
+  return ''
+})()
 
 type AuthState = 'checking' | 'ok' | 'unauth' | 'unreachable'
 
@@ -18,7 +36,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname()
 
   useEffect(() => {
-    fetch(`${API}/api/auth/me`, { credentials: 'include' })
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 6000)
+
+    fetch(`${API}/api/auth/me`, { credentials: 'include', signal: controller.signal })
       .then(r => r.ok ? r.json() : null)
       .then(user => {
         if (user?.role === 'admin') {
@@ -27,7 +48,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           setAuth('unauth')
         }
       })
-      .catch(() => setAuth('unreachable'))
+      .catch((err) => {
+        if (err.name === 'AbortError') {
+          setAuth('unauth')
+        } else {
+          setAuth('unreachable')
+        }
+      })
+
+    return () => clearTimeout(timeoutId)
   }, [])
 
   // Redirect to OS login when not authenticated
