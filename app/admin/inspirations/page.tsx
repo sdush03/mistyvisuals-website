@@ -110,24 +110,27 @@ export default function AdminInspirationsPage() {
     }
   }
 
-  const handleDrop = async (targetId: number) => {
-    if (!draggingId || draggingId === targetId) return setDraggingId(null)
+  const handleBoardDragOver = (targetId: number) => {
+    if (!draggingId || draggingId === targetId) return
     const idxCurrent = boards.findIndex(b => b.id === draggingId)
     const idxTarget = boards.findIndex(b => b.id === targetId)
-    if (idxCurrent === -1 || idxTarget === -1) return setDraggingId(null)
+    if (idxCurrent === -1 || idxTarget === -1) return
 
     const updated = [...boards]
     const [moved] = updated.splice(idxCurrent, 1)
     updated.splice(idxTarget, 0, moved)
     updated.forEach((b, i) => (b.display_order = i))
     setBoards(updated)
-    setDraggingId(null)
+  }
 
+  const handleBoardDragEnd = async () => {
+    if (!draggingId) return
+    setDraggingId(null)
     try {
       await apiFetch('/api/website/admin/inspirations/reorder', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ order: updated.map(b => ({ id: b.id, display_order: b.display_order })) }),
+        body: JSON.stringify({ order: boards.map((b, i) => ({ id: b.id, display_order: i })) }),
       })
     } catch {
       fetchBoards()
@@ -197,8 +200,13 @@ export default function AdminInspirationsPage() {
               key={board.id}
               draggable
               onDragStart={() => setDraggingId(board.id)}
-              onDragOver={e => e.preventDefault()}
-              onDrop={() => handleDrop(board.id)}
+              onDragOver={e => {
+                e.preventDefault()
+                if (draggingId !== null && draggingId !== board.id) {
+                  handleBoardDragOver(board.id)
+                }
+              }}
+              onDragEnd={handleBoardDragEnd}
               className="admin-card"
               style={{
                 display: 'flex',
@@ -209,6 +217,7 @@ export default function AdminInspirationsPage() {
                 borderColor: draggingId === board.id ? '#9a7d52' : '#ece9e4',
                 opacity: draggingId === board.id ? 0.4 : 1,
                 padding: '1rem 1.25rem',
+                transition: 'transform 0.15s ease, opacity 0.15s ease',
               }}
             >
               <div style={{ color: '#c0b9af', cursor: 'grab', display: 'flex', alignItems: 'center' }}>
@@ -223,7 +232,7 @@ export default function AdminInspirationsPage() {
               >
                 <div style={{ width: '56px', height: '56px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#fcfbf9', border: '1px solid #ece9e4' }}>
                   {board.cover_image_url ? (
-                    <img src={board.cover_image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={board.cover_image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
                   ) : (
                     <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <span style={{ fontSize: '0.625rem', color: '#c0b9af', fontWeight: 500 }}>No Cover</span>

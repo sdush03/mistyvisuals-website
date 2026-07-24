@@ -182,24 +182,27 @@ export default function AdminInspirationEditorPage() {
     }
   }
 
-  const handlePhotoDrop = async (targetId: number) => {
-    if (!draggingPhotoId || draggingPhotoId === targetId) return setDraggingPhotoId(null)
+  const handlePhotoDragOver = (targetId: number) => {
+    if (!draggingPhotoId || draggingPhotoId === targetId) return
     const idxCurrent = photos.findIndex(p => p.id === draggingPhotoId)
     const idxTarget = photos.findIndex(p => p.id === targetId)
-    if (idxCurrent === -1 || idxTarget === -1) return setDraggingPhotoId(null)
+    if (idxCurrent === -1 || idxTarget === -1) return
 
     const updated = [...photos]
     const [moved] = updated.splice(idxCurrent, 1)
     updated.splice(idxTarget, 0, moved)
     updated.forEach((p, i) => (p.display_order = i))
     setPhotos(updated)
-    setDraggingPhotoId(null)
+  }
 
+  const handlePhotoDragEnd = async () => {
+    if (!draggingPhotoId) return
+    setDraggingPhotoId(null)
     try {
       await apiFetch(`/api/website/admin/inspirations/${id}/photos/reorder`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ order: updated.map(p => ({ id: p.id, display_order: p.display_order })) }),
+        body: JSON.stringify({ order: photos.map((p, i) => ({ id: p.id, display_order: i })) }),
       })
     } catch {
       fetchBoardDetails()
@@ -481,11 +484,13 @@ export default function AdminInspirationEditorPage() {
                   key={photo.id}
                   draggable
                   onDragStart={() => setDraggingPhotoId(photo.id)}
-                  onDragOver={e => e.preventDefault()}
-                  onDrop={e => {
-                    e.stopPropagation()
-                    handlePhotoDrop(photo.id)
+                  onDragOver={e => {
+                    e.preventDefault()
+                    if (draggingPhotoId !== null && draggingPhotoId !== photo.id) {
+                      handlePhotoDragOver(photo.id)
+                    }
                   }}
+                  onDragEnd={handlePhotoDragEnd}
                   style={{
                     position: 'relative',
                     aspectRatio: '3/4',
@@ -495,9 +500,10 @@ export default function AdminInspirationEditorPage() {
                     border: draggingPhotoId === photo.id ? '2px solid #9a7d52' : '1px solid #ece9e4',
                     opacity: draggingPhotoId === photo.id ? 0.4 : 1,
                     cursor: 'grab',
+                    transition: 'transform 0.15s ease, opacity 0.15s ease',
                   }}
                 >
-                  <img src={photo.file_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={photo.file_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }} />
                   <button
                     onClick={() => handleDeletePhoto(photo.id)}
                     style={{
