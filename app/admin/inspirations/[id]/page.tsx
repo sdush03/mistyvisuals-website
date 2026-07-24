@@ -296,14 +296,14 @@ export default function AdminInspirationEditorPage() {
           Set optimized landscape covers for wide-screen viewports, and portrait layouts for mobile screens. Drag & drop files directly onto any cover box to update.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-          {/* 1. Desktop / Landscape Cover */}
-          <div>
+        <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+          {/* 1. Desktop / Landscape Cover (3x2 Aspect Ratio) */}
+          <div style={{ flex: 1, minWidth: '260px', maxWidth: '380px' }}>
             <span style={{ fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#1c1a18', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>
-              DESKTOP BANNER (LANDSCAPE)
+              DESKTOP BANNER (3x2 LANDSCAPE)
             </span>
             <p style={{ fontSize: '0.7rem', color: '#8c867e', marginBottom: '0.75rem' }}>
-              Wide landscape cover for high-res web & wide cards
+              Wide 3:2 landscape cover for web & wide cards
             </p>
 
             <div
@@ -317,7 +317,7 @@ export default function AdminInspirationEditorPage() {
               }}
               style={{
                 width: '100%',
-                height: '210px',
+                aspectRatio: '3/2',
                 borderRadius: '10px',
                 border: dragOverZone === 'desktop' ? '2px solid #9a7d52' : '1px dashed #e5e1da',
                 background: '#fcfbf9',
@@ -336,13 +336,13 @@ export default function AdminInspirationEditorPage() {
 
               <div style={{ position: 'relative', zIndex: 2, background: 'rgba(255,255,255,0.92)', padding: '0.5rem 1rem', borderRadius: '6px', textAlign: 'center' }}>
                 <span style={{ fontSize: '0.75rem', color: '#1c1a18', fontWeight: 600 }}>
-                  {board.cover_image_url ? 'Click or drag file to replace landscape cover' : 'Upload Landscape Cover'}
+                  {board.cover_image_url ? 'Click or drag file to replace 3x2 cover' : 'Upload 3x2 Cover'}
                 </span>
               </div>
 
               {uploadingTarget === 'cover-desktop' && (
                 <div style={{ position: 'absolute', inset: 0, background: 'rgba(28,26,24,0.85)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
-                  <span style={{ color: '#fff', fontSize: '0.75rem', fontWeight: 500 }}>Uploading Landscape {uploadProgress}%</span>
+                  <span style={{ color: '#fff', fontSize: '0.75rem', fontWeight: 500 }}>Uploading 3x2 {uploadProgress}%</span>
                 </div>
               )}
             </div>
@@ -356,13 +356,13 @@ export default function AdminInspirationEditorPage() {
             />
           </div>
 
-          {/* 2. Mobile / Portrait Cover */}
-          <div>
+          {/* 2. Mobile / Portrait Cover (9x16 Aspect Ratio) */}
+          <div style={{ flex: 1, minWidth: '180px', maxWidth: '240px' }}>
             <span style={{ fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#1c1a18', fontWeight: 600, display: 'block', marginBottom: '0.35rem' }}>
-              MOBILE BANNER (PORTRAIT)
+              MOBILE BANNER (9x16 PORTRAIT)
             </span>
             <p style={{ fontSize: '0.7rem', color: '#8c867e', marginBottom: '0.75rem' }}>
-              Tall portrait banner displayed on mobile screens
+              Tall 9:16 portrait banner displayed on mobile screens
             </p>
 
             <div
@@ -376,7 +376,7 @@ export default function AdminInspirationEditorPage() {
               }}
               style={{
                 width: '100%',
-                height: '210px',
+                aspectRatio: '9/16',
                 borderRadius: '10px',
                 border: dragOverZone === 'mobile' ? '2px solid #9a7d52' : '1px dashed #e5e1da',
                 background: '#fcfbf9',
@@ -395,13 +395,13 @@ export default function AdminInspirationEditorPage() {
 
               <div style={{ position: 'relative', zIndex: 2, background: 'rgba(255,255,255,0.92)', padding: '0.5rem 1rem', borderRadius: '6px', textAlign: 'center' }}>
                 <span style={{ fontSize: '0.75rem', color: '#1c1a18', fontWeight: 600 }}>
-                  {board.cover_image_mobile_url ? 'Click or drag file to replace portrait cover' : 'Upload Portrait Cover'}
+                  {board.cover_image_mobile_url ? 'Click or drag file to replace 9x16 cover' : 'Upload 9x16 Cover'}
                 </span>
               </div>
 
               {uploadingTarget === 'cover-mobile' && (
                 <div style={{ position: 'absolute', inset: 0, background: 'rgba(28,26,24,0.85)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
-                  <span style={{ color: '#fff', fontSize: '0.75rem', fontWeight: 500 }}>Uploading Portrait {uploadProgress}%</span>
+                  <span style={{ color: '#fff', fontSize: '0.75rem', fontWeight: 500 }}>Uploading 9x16 {uploadProgress}%</span>
                 </div>
               )}
             </div>
