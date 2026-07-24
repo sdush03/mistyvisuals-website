@@ -24,6 +24,12 @@ export default function AdminInspirationEditorPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  // Categories Multi-Select state
+  const [catDropdownOpen, setCatDropdownOpen] = useState(false)
+  const [allCategories, setAllCategories] = useState<string[]>([])
+  const [newCat, setNewCat] = useState('')
+  const PREDEFINED_CATEGORIES = ['Destination', 'Intimate', 'Night', 'Pre-Wedding']
+
   // Uploading & Drag active states
   const [uploadingTarget, setUploadingTarget] = useState<string | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -65,6 +71,7 @@ export default function AdminInspirationEditorPage() {
           subtitle: board.subtitle,
           description: board.description,
           slug: board.slug,
+          category: board.category,
           is_published: board.is_published,
         }),
       })
@@ -287,6 +294,106 @@ export default function AdminInspirationEditorPage() {
             onChange={e => setBoard({ ...board, description: e.target.value })}
             style={{ padding: '0.75rem 1rem' }}
           />
+        </div>
+
+        {/* Categories Multi-Select */}
+        <div style={{ position: 'relative' }}>
+          <label style={{ fontSize: '0.75rem', color: '#8c867e', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>Categories</label>
+          <div 
+            onClick={() => setCatDropdownOpen(!catDropdownOpen)}
+            className="admin-input"
+            style={{
+              background: '#fff',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              color: board.category ? '#1c1a18' : '#c0b9af'
+            }}
+          >
+            <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: '1rem' }}>
+              {board.category || 'Select categories...'}
+            </div>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: catDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }}>
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+          
+          {catDropdownOpen && (
+            <div style={{
+              position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '4px',
+              background: '#fff', border: '1px solid #e5e1da', borderRadius: '8px',
+              boxShadow: '0 4px 24px rgba(28,26,24,0.08)', zIndex: 50, padding: '0.5rem 0',
+              maxHeight: '260px', overflowY: 'auto'
+            }}>
+              {Array.from(new Set([...PREDEFINED_CATEGORIES, ...allCategories, ...(board.category || '').split(',').map((c: string) => c.trim()).filter(Boolean)])).sort().map(cat => {
+                const currentCats = (board.category || '').split(',').map((c: string) => c.trim()).filter(Boolean)
+                const isSelected = currentCats.includes(cat)
+                return (
+                  <div 
+                    key={cat}
+                    onClick={() => {
+                      let newCats = [...currentCats]
+                      if (isSelected) newCats = newCats.filter(c => c !== cat)
+                      else newCats.push(cat)
+                      setBoard((s: any) => ({ ...s, category: newCats.join(', ') }))
+                    }}
+                    style={{
+                      padding: '0.45rem 1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.625rem',
+                      background: isSelected ? '#f7f6f4' : 'transparent',
+                      fontSize: '0.8125rem'
+                    }}
+                  >
+                    <div style={{ 
+                      width: '14px', height: '14px', border: '1px solid #c0b9af', borderRadius: '3px', 
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: isSelected ? '#1c1a18' : '#fff', borderColor: isSelected ? '#1c1a18' : '#c0b9af',
+                      flexShrink: 0
+                    }}>
+                      {isSelected && <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                    </div>
+                    <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: isSelected ? '#1c1a18' : '#4a4540' }}>{cat}</span>
+                  </div>
+                )
+              })}
+              <div style={{ padding: '0.45rem 1rem', borderTop: '1px solid #ece9e4', display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }} onClick={e => e.stopPropagation()}>
+                <input 
+                  className="admin-input"
+                  value={newCat} 
+                  onChange={e => setNewCat(e.target.value)} 
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      if (!newCat.trim()) return
+                      const currentCats = (board.category || '').split(',').map((c: string) => c.trim()).filter(Boolean)
+                      if (!currentCats.includes(newCat.trim())) {
+                        setBoard((s: any) => ({ ...s, category: [...currentCats, newCat.trim()].join(', ') }))
+                        if (!allCategories.includes(newCat.trim())) setAllCategories(prev => [...prev, newCat.trim()])
+                      }
+                      setNewCat('')
+                    }
+                  }}
+                  placeholder="New category..." 
+                  style={{ flex: 1, padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                />
+                <button 
+                  className="admin-btn admin-btn-secondary"
+                  onClick={() => {
+                    if (!newCat.trim()) return
+                    const currentCats = (board.category || '').split(',').map((c: string) => c.trim()).filter(Boolean)
+                    if (!currentCats.includes(newCat.trim())) {
+                      setBoard((s: any) => ({ ...s, category: [...currentCats, newCat.trim()].join(', ') }))
+                      if (!allCategories.includes(newCat.trim())) setAllCategories(prev => [...prev, newCat.trim()])
+                    }
+                    setNewCat('')
+                  }}
+                  style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
