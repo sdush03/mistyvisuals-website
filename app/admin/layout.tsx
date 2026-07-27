@@ -142,7 +142,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       href: '/admin/reels',
     },
     {
-      label: 'Inspirations',
+      label: 'Aesthetics',
       href: '/admin/inspirations',
     },
     {

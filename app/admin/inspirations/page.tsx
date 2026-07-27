@@ -142,10 +142,10 @@ export default function AdminInspirationsPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '2rem', fontWeight: 400, color: '#1c1a18' }}>
-            Inspirations (Mobile App Only)
+            Aesthetics (Mobile App Only)
           </h1>
           <p style={{ fontSize: '0.8125rem', color: '#8c867e', marginTop: '0.15rem' }}>
-            Curate moodboard inspiration collections for the mobile app. Uploaded assets save directly to Cloudflare R2 under <code style={{ background: '#eee', padding: '2px 6px', borderRadius: '4px' }}>website/inspirations/&lt;slug&gt;/</code>.
+            Curate moodboard aesthetic collections for the mobile app. Uploaded assets save directly to Cloudflare R2 under <code style={{ background: '#eee', padding: '2px 6px', borderRadius: '4px' }}>website/inspirations/&lt;slug&gt;/</code>.
           </p>
         </div>
       </div>
@@ -153,7 +153,7 @@ export default function AdminInspirationsPage() {
       {/* Create New Form */}
       <div className="admin-card" style={{ marginBottom: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', fontWeight: 400, color: '#1c1a18' }}>
-          Create New Inspiration Collection
+          Create New Aesthetic Collection
         </h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <input
