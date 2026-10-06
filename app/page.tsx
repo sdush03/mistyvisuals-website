@@ -10,7 +10,7 @@ import InquiryCTA from '@/components/InquiryCTA'
 import FullBleedVideo from '@/components/FullBleedVideo'
 import InstagramFeed from '@/components/InstagramFeed'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 300 // Revalidate every 5 minutes (ISR)
 
 export async function generateMetadata(): Promise<Metadata> {
   let ogImage = ''
@@ -26,10 +26,10 @@ export async function generateMetadata(): Promise<Metadata> {
   const ogUrl = ogImage ? `/api/og/home?img=${encodeURIComponent(ogImage)}` : '/api/og/home'
 
   return {
-    title: 'Weddings by Misty Visuals — Luxury Wedding Photography & Films',
+    title: 'Misty Visuals Wedding Photography — Luxury Wedding Photography & Films',
     description: 'Luxury wedding photography and cinematic films by Weddings by Misty Visuals. Creative wedding storytellers based in Gurgaon, India and available worldwide.',
     openGraph: {
-      title: 'Weddings by Misty Visuals — Luxury Wedding Photography & Films',
+      title: 'Misty Visuals Wedding Photography — Luxury Wedding Photography & Films',
       description: 'Luxury wedding photography and cinematic films by Weddings by Misty Visuals. Creative wedding storytellers based in Gurgaon, India and available worldwide.',
       type: 'website',
       images: [{ url: ogUrl, width: 1200, height: 630, alt: 'Misty Visuals' }],
@@ -65,10 +65,10 @@ export default async function HomePage() {
             "@type": "WebSite",
             "name": "Misty Visuals",
             "alternateName": [
+              "Misty Visuals Wedding Photography",
               "Weddings by Misty Visuals",
-              "Misty Visuals Gurgaon",
               "Misty Visuals Photography",
-              "Misty Visuals Wedding Films"
+              "Misty Visuals Gurgaon"
             ],
             "url": "https://www.mistyvisuals.com",
             "potentialAction": {
@@ -87,10 +87,10 @@ export default async function HomePage() {
             "@type": "ProfessionalService",
             "name": "Misty Visuals",
             "alternateName": [
+              "Misty Visuals Wedding Photography",
               "Weddings by Misty Visuals",
-              "Misty Visuals Gurgaon",
               "Misty Visuals Photography",
-              "Misty Visuals Wedding Films"
+              "Misty Visuals Gurgaon"
             ],
             "image": absoluteHeroImage,
             "logo": "https://www.mistyvisuals.com/logo-white.png",
